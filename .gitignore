@@ -1,0 +1,9 @@
+bin
+node_modules
+.vite
+deno.lock
+package-lock.json
+dist
+
+target
+Cargo.lock

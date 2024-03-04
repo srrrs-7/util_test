@@ -1,0 +1,13 @@
+@startuml
+
+entity Event {}
+entity Metrics {}
+entity Log {}
+entity Trace
+
+Event }|--|| Metrics
+Log }|--|| Event
+Trace }|--|| Event
+Log }|--|| Trace
+
+@enduml

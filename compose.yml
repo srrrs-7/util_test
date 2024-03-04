@@ -1,0 +1,49 @@
+version: "3"
+services:
+  gopher:
+    image: golang:1.22.0
+    working_dir: /go/src
+    volumes:
+      - ./go/src:/go/src
+  
+  rust:
+    image: rust:latest
+    platform: linux/amd64
+    working_dir: /rust
+    volumes:
+      - ./rust/dev:/rust
+
+  node:
+    image: node:latest
+    working_dir: /node
+    volumes:
+      - ./node:/node
+    
+  deno:
+    image: denoland/deno
+    working_dir: /deno
+    volumes:
+      - ./deno:/deno
+    ports:
+      - 8000:8000
+    command: deno run --allow-net --allow-read https://raw.githubusercontent.com/magnattic/json-server/master/server.ts --watch ./db.json -port 8000
+
+  php:
+    image: php:latest
+    working_dir: /php
+    volumes:
+      - ./php:/php
+
+  linux:
+    image: ubuntu:latest
+
+  k6:
+    image: grafana/k6
+    volumes:
+      - ./k6:/k6
+      
+  plantuml:
+    image: plantuml/plantuml-server
+    ports:
+      - 8080:8080
+      

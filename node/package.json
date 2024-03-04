@@ -1,0 +1,17 @@
+{
+  "name": "dev",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "init": "npx tsc --init",
+    "dev": "npx tsc && node ./dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "typescript": "^5.3.3"
+  }
+}
