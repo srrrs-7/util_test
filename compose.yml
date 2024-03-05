@@ -20,7 +20,8 @@ services:
       - ./node:/node
     
   deno:
-    image: denoland/deno
+    build:
+      dockerfile: ./.images/deno.Dockerfile
     working_dir: /deno
     volumes:
       - ./deno:/deno
