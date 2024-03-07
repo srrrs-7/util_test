@@ -29,6 +29,12 @@ services:
       - 8000:8000
     command: deno run --allow-net --allow-read https://raw.githubusercontent.com/magnattic/json-server/master/server.ts --watch ./db.json -port 8000
 
+  bun:
+    build:
+      dockerfile: ./.images/bun.Dockerfile
+    ports:
+      - 3000:3000
+
   php:
     image: php:latest
     working_dir: /php

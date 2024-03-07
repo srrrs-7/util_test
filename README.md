@@ -8,5 +8,6 @@
     - node
     - deno
         - [jsr](https://jsr.io/docs/using-packages)
+    - bun
     - php
     - plantuml

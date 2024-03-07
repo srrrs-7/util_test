@@ -1,4 +1,4 @@
-.PHONY: gopher rust node deno php linux k6 plantuml
+.PHONY: gopher rust node deno bun php linux k6 plantuml
 
 gopher:
 	docker compose build gopher
@@ -12,6 +12,8 @@ node:
 deno:
 	docker compose build deno
 	docker compose run --rm deno bash
+bun:
+	docker compose up -d bun --build
 deno-server:
 	docker compose up -d deno --build
 php:
