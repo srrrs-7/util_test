@@ -5,8 +5,8 @@ pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
 
-pub fn sum(left: i32, right: i32) -> i32 {
-    dp::sum::partial_sum(left, right)
+pub fn sum(seek_weight: i32, weights: Vec<i32>) -> i32 {
+    dp::sum::partial_sum(seek_weight, weights)
 }
 
 #[cfg(test)]

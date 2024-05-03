@@ -1,5 +1,12 @@
-.PHONY: gopher rust node deno bun php linux k6 plantuml
+.PHONY: mysql data conn
+mysql:
+	docker compose up -d mysql --build
+data:
+	cd database/util && ./create_data.sh name age 1996-08-25 1000
+conn:
+	docker compose exec mysql mysql -u root -p
 
+.PHONY: mysql gopher rust node deno bun php linux k6 plantuml
 gopher:
 	docker compose build gopher
 	docker compose run --rm gopher bash

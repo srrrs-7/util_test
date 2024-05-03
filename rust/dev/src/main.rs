@@ -1,11 +1,14 @@
 
 use algo::add;
-use algo::partial_sum::partial_sum;
+use algo::sum;
 
 fn main() {
-    let sum = add(1,2);
-    println!("{}", sum);
+    let total = add(1,2);
+    println!("{}", total);
 
-    let s = partial_sum(1,2);
+    let s = sum(16,vec![2,4,7,3,12]);
     println!("{}", s);
+
+    let ss = sum(10,vec![7,3,4,3,2]);
+    println!("{}", ss);
 }
