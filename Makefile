@@ -1,4 +1,4 @@
-.PHONY: mysql data conn
+.PHONY: mysql data conn dump
 mysql:
 	docker compose up -d mysql --build
 data:
