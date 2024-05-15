@@ -4,7 +4,10 @@ mysql:
 data:
 	cd database/util && ./create_data.sh name age 1996-08-25 1000
 conn:
-	docker compose exec mysql mysql -u root -p
+	docker compose exec mysql mysql -u root -p test
+dump:
+	docker compose exec mysql mysqldump -u root -p test > ./database/dump/dump.sql
+	gzip ./database/dump/dump.sql
 
 .PHONY: mysql gopher rust node deno bun php linux k6 plantuml
 gopher:
