@@ -33,8 +33,8 @@ services:
     volumes:
       - ./deno:/deno
     ports:
-      - 8000:8000
-    command: deno run --allow-net --allow-read https://raw.githubusercontent.com/magnattic/json-server/master/server.ts --watch ./db.json -port 8000
+      - 4507:4507
+    command: sh -c "cd deno-svelte && deno task build && deno task serve"
 
   bun:
     build:
