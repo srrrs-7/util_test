@@ -9,7 +9,10 @@ dump:
 	docker compose exec mysql mysqldump -u root -p test > ./database/dump/dump.sql
 	gzip ./database/dump/dump.sql
 
-.PHONY: mysql gopher rust node deno bun php linux k6 plantuml
+.PHONY: redis mysql gopher rust node deno bun php linux k6 plantuml
+redis:
+	docker compose up -d rds --build
+	docker compose exec rds bash
 gopher:
 	docker compose build gopher
 	docker compose run --rm gopher bash

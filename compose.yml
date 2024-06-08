@@ -6,6 +6,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: test
+  
+  rds:
+    image: redis:latest
+    ports:
+      - 6370:6370
 
   gopher:
     image: golang:1.22.0
