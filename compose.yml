@@ -23,7 +23,7 @@ services:
     platform: linux/amd64
     working_dir: /rust
     volumes:
-      - ./rust/dev:/rust
+      - ./rust:/rust
 
   node:
     image: node:latest
