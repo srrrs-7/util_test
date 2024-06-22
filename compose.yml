@@ -7,6 +7,17 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: test
   
+  postgres:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: test
+    volumes:
+      - ./postgres/init/init.sql:/postgres/init/init.sql
+  
   rds:
     image: redis:latest
     ports:
