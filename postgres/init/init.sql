@@ -1,18 +1,7 @@
--- vector extension install
-CREATE EXTENSION IF NOT EXISTS pgvector;
+CREATE EXTENSION vector;
 
--- create table
-CREATE TABLE products (
-    id SERIAL PRIMARY KEY,
-    name TEXT,
-    features vector(100)
-);
+CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
 
--- insert data
-INSERT INTO products (name, features) VALUES
-  ('Product A', '{1.2, 3.4, 5.6, 7.8, 9.0, 0.1, 0.2, 0.3, 0.4, 0.5}'),
-  ('Product B', '{0.1, 0.2, 0.3, 0.4, 0.5, 1.2, 3.4, 5.6, 7.8, 9.0}')
-;
+INSERT INTO items (embedding) VALUES ('[1,2,3]'), ('[4,5,6]');
 
--- create index
-CREATE INDEX products_features_idx ON products USING GIST (features gist_vector_ops); 
+SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;

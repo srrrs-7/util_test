@@ -12,9 +12,8 @@ dump:
 .PHONY: postgres psql
 postgres:
 	docker compose up -d postgres --build
-	docker compose exec postgres sh -c 'apt-get update && apt-get install postgresql-contrib'
-	docker compose exec postgres psql -h localhost -p 5432 -U root -d test -f /postgres/init/init.sql
 psql:
+	docker compose exec postgres psql -h localhost -p 5432 -U root -d test -f /postgres/init/init.sql
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
 
 .PHONY: redis mysql gopher rust node deno bun php linux k6 plantuml

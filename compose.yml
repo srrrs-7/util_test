@@ -9,12 +9,15 @@ services:
   
   postgres:
     image: postgres:latest
+    build:
+      dockerfile: ./.images/pg.Dockerfile
     ports:
       - 5432:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: test
+    restart: always
     volumes:
       - ./postgres/init/init.sql:/postgres/init/init.sql
   
