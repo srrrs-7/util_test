@@ -34,7 +34,7 @@ services:
   
   rust:
     image: rust:latest
-    platform: linux/amd64
+    platform: linux/arm64
     working_dir: /rust
     volumes:
       - ./rust:/rust
