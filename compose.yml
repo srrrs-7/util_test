@@ -117,7 +117,8 @@ services:
   vector:
     image: timberio/vector:latest-alpine
     ports:
-      - "5044:5044" # Expose Vector's log input port
-      - "8664:8664" # Expose Vector's internal metrics
+      - 5044:5044 # Expose Vector's log input port
+      - 8664:8664 # Expose Vector's internal metrics
+      - 8686:8686 # browser
     volumes:
-      - ./observer/vector/config.yml:/etc/vector/vector.yml
+      - ./observer/vector/config.yaml:/etc/vector/vector.yaml

@@ -56,6 +56,8 @@ plantuml:
 	docker compose up -d plantuml
 
 
-.PHONY: observer
+.PHONY: observer vector
 observer:
 	docker compose up -d prometheus grafana vector --build
+vector:
+	docker compose exec vector vector top
