@@ -1,4 +1,4 @@
-.PHONY: surreal surql
+.PHONY: surreal
 surreal: 
 	docker compose up -d surreal
 
