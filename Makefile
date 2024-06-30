@@ -1,6 +1,8 @@
-.PHONY: surreal
+.PHONY: surreal surql
 surreal: 
-	docker compose up -d surreal
+	docker compose up -d surreal surql --build
+surql:
+	docker compose run --rm surql
 
 .PHONY: mysql data conn dump
 mysql:

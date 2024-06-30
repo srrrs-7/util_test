@@ -4,10 +4,19 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - SURREALDB_USER=root
-      - SURREALDB_PASS=root
+      SURREALDB_USER: root
+      SURREALDB_PASS: root
     restart: always
     command: start --log trace --auth --user root --pass root
+  surql:
+    build:
+      dockerfile: ./.images/surql.Dockerfile
+    environment:
+      SURREALDB_USER: root
+      SURREALDB_PASS: root
+      SURREALDB_ENDPOINT: http://surreal:8000
+    volumes:
+      - ./surrealdb:/surrealdb
 
   mysql:
     image: mysql:latest
@@ -16,7 +25,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: test
-  
+
   postgres:
     image: postgres:latest
     build:
@@ -30,7 +39,7 @@ services:
     restart: always
     volumes:
       - ./postgres/init/init.sql:/postgres/init/init.sql
-  
+
   rds:
     image: redis:latest
     ports:
@@ -41,7 +50,7 @@ services:
     working_dir: /go/src
     volumes:
       - ./go/src:/go/src
-  
+
   rust:
     image: rust:latest
     platform: linux/arm64
@@ -54,7 +63,7 @@ services:
     working_dir: /node
     volumes:
       - ./node:/node
-    
+
   deno:
     build:
       dockerfile: ./.images/deno.Dockerfile
@@ -84,9 +93,8 @@ services:
     image: grafana/k6
     volumes:
       - ./k6:/k6
-      
+
   plantuml:
     image: plantuml/plantuml-server
     ports:
       - 8080:8080
-      
