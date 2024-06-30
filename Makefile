@@ -1,3 +1,7 @@
+.PHONY: surreal surql
+surreal: 
+	docker compose up -d surreal
+
 .PHONY: mysql data conn dump
 mysql:
 	docker compose up -d mysql --build

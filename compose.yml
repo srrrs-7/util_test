@@ -1,4 +1,14 @@
 services:
+  surreal:
+    image: surrealdb/surrealdb:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - SURREALDB_USER=root
+      - SURREALDB_PASS=root
+    restart: always
+    command: start --log trace --auth --user root --pass root
+
   mysql:
     image: mysql:latest
     ports:
