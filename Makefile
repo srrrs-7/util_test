@@ -54,3 +54,8 @@ k6:
 	docker compose run --rm k6 run --vus 10 --duration 5s /k6/script.js
 plantuml:
 	docker compose up -d plantuml
+
+
+.PHONY: observer
+observer:
+	docker compose up -d prometheus grafana vector --build

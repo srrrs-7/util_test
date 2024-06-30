@@ -98,3 +98,26 @@ services:
     image: plantuml/plantuml-server
     ports:
       - 8080:8080
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./observer/prometheus/config.yml:/etc/prometheus/prometheus.yml
+      - ./observer/prometheus/data:/prometheus
+
+  grafana:
+    image: grafana/grafana-enterprise
+    ports:
+      - 3011:3000
+    volumes:
+      - ./observer/grafana/data:/var/lib/grafana
+
+  vector:
+    image: timberio/vector:latest-alpine
+    ports:
+      - "5044:5044" # Expose Vector's log input port
+      - "8664:8664" # Expose Vector's internal metrics
+    volumes:
+      - ./observer/vector/config.yml:/etc/vector/vector.yml
