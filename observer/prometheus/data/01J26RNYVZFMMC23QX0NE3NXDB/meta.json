@@ -1,0 +1,17 @@
+{
+	"ulid": "01J26RNYVZFMMC23QX0NE3NXDB",
+	"minTime": 1720341058303,
+	"maxTime": 1720346400000,
+	"stats": {
+		"numSamples": 5,
+		"numSeries": 5,
+		"numChunks": 5
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01J26RNYVZFMMC23QX0NE3NXDB"
+		]
+	},
+	"version": 1
+}
