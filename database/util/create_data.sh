@@ -8,10 +8,10 @@ length=$4;
 
 rm -f ./data.txt;
 
-for ((i = 1; i <= $length; i++)); 
+for ((i = 1; i <= $length; i++));
 do
     if [ $i == $length ]
-    then 
+    then
         echo "('$arg1$i', $i, '$arg3')" >> ./data.txt;
         echo ";" >> ./data.txt;
     else
