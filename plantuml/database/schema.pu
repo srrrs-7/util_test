@@ -1,0 +1,17 @@
+@startuml
+
+entity "Users" as Users {
+  *user_id : number <<generated>>
+  --
+  name : varchar(100)
+  email : varchar(100)
+}
+
+Users }|..|| Entity02
+
+Entity01 }|..|| Entity02
+Entity03 }o..o| Entity04
+Entity05 ||--o{ Entity06
+Entity07 |o--|| Entity08
+
+@enduml
