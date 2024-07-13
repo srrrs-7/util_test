@@ -1,5 +1,5 @@
 .PHONY: surreal surql
-surreal: 
+surreal:
 	docker compose up -d surreal surql --build
 surql:
 	docker compose run --rm surql

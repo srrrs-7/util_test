@@ -25,6 +25,9 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: test
+    restart: always
+    volumes:
+      - ./mysql/init/init.sql:/mysql/init/init.sql
 
   postgres:
     image: postgres:latest
