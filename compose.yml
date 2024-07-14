@@ -19,7 +19,8 @@ services:
       - ./surrealdb:/surrealdb
 
   mysql:
-    image: mysql:latest
+    build:
+      dockerfile: ./.images/mysql.Dockerfile
     ports:
       - 3306:3306
     environment:
@@ -30,7 +31,6 @@ services:
       - ./mysql/init/init.sql:/mysql/init/init.sql
 
   postgres:
-    image: postgres:latest
     build:
       dockerfile: ./.images/pg.Dockerfile
     ports:
