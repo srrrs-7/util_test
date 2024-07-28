@@ -114,8 +114,27 @@ services:
     image: grafana/grafana-enterprise
     ports:
       - 3011:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - ./observer/grafana/data:/var/lib/grafana
+
+  otlp:
+    image: otel/opentelemetry-collector-contrib
+    ports:
+      - 4317:4317 # otlp/gRPC
+      - 4318:4318 # otlp/http
+      - 14268:14268 # Jaeger Thrift receiver
+      - 55681:55681 # otlp/http
+    volumes:
+      - ./observer/otel/config.yaml:/etc/otel/config.yaml
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "14250:14250" # Jaeger Agent
 
   vector:
     image: timberio/vector:latest-alpine
