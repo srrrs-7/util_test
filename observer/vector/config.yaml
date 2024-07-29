@@ -33,12 +33,3 @@ sinks:
 api:
   enabled: true
   address: "127.0.0.1:8686"
-
-sources.in:
-  type: docker_logs
-  include_containers: ["foobar"]
-
-sinks.out:
-  type: console
-  inputs: in
-  encoding.codec: json

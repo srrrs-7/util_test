@@ -120,7 +120,21 @@ services:
     volumes:
       - ./observer/grafana/data:/var/lib/grafana
 
-  otlp:
+  loki: # collect logs
+    image: grafana/loki:latest
+    ports:
+      - 3100:3100
+
+  tempo: # collect trace
+    image: grafana/tempo:latest
+    ports:
+      - 3200:3200
+    environment:
+      - TEMPO_STORAGE_TYPE=local # local file storage
+    volumes:
+      - ./observer/tempo/config.yml:/etc/tempo.yml
+
+  otel-collector:
     image: otel/opentelemetry-collector-contrib
     ports:
       - 4317:4317 # otlp/gRPC
@@ -128,7 +142,8 @@ services:
       - 14268:14268 # Jaeger Thrift receiver
       - 55681:55681 # otlp/http
     volumes:
-      - ./observer/otel/config.yaml:/etc/otel/config.yaml
+      - ./observer/otel-collector/config.yaml:/etc/otel/config.yaml
+    command: ["--config=/etc/otel/config.yaml"]
 
   jaeger:
     image: jaegertracing/all-in-one:latest

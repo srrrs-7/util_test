@@ -1,0 +1,42 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+
+exporters:
+  logging:
+    loglevel: debug
+
+  otlp/loki:
+    endpoint: loki:3100
+    tls:
+      insecure: true
+
+  otlp/tempo:
+    endpoint: tempo:3200
+    tls:
+      insecure: true
+
+  otlp/prometheus:
+    endpoint: prometheus:9090
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, otlp/loki]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, otlp/prometheus]

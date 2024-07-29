@@ -1,0 +1,27 @@
+global:
+  trace_id_injection_enabled: true
+
+authz:
+  allow_anonymous: true
+
+server:
+  http_listen_port: 9090
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: otel-collecoter:4317
+        http:
+          endpoint: otel-collecoter:4318
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: ./tempo-data/
+
+compactor:
+  compaction:
+    compaction_window: 1h
