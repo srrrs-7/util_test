@@ -48,6 +48,18 @@ services:
     ports:
       - 6370:6370
 
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - ./mongo/data:/data/db
+      - ./mongo/init:/mongo/init
+
   gopher:
     image: golang:1.22.0
     working_dir: /go/src

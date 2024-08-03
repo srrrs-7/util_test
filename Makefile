@@ -23,10 +23,14 @@ psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test -f /postgres/init/init.sql
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
 
-.PHONY: redis mysql gopher rust node deno bun php linux k6 plantuml
+.PHONY: redis mongo gopher rust node deno bun php linux k6 plantuml
 redis:
 	docker compose up -d rds --build
 	docker compose exec rds bash
+mongo:
+	docker compose up -d mongo --build
+	docker compose exec mongo bash /mongo/init/mongo.sh
+	docker compose exec mongo bash
 gopher:
 	docker compose build gopher
 	docker compose run --rm gopher bash
