@@ -15,7 +15,7 @@ func NewValue(v int) *Value {
 	return &Value{v: v, mux: &mux}
 }
 
-func Multi(ch chan string) {
+func Multi(ch chan<- string) {
 	var wg sync.WaitGroup
 	for n := range 10 {
 		wg.Add(1)

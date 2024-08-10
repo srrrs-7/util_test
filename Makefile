@@ -60,7 +60,6 @@ k6:
 plantuml:
 	docker compose up -d plantuml
 
-
 .PHONY: observer vector
 observer:
 	docker compose up -d prometheus grafana tempo loki otel-collector jaeger vector --build
