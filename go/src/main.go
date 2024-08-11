@@ -13,6 +13,8 @@ func main() {
 	cus := lib.Custom{
 		Name: []int{1, 2},
 	}
+	fmt.Println("count: ", cus.Count())
+
 	cus.TypeCheck()
 	arr, err := lib.TypeCast[int](cus.Name)
 	if err != nil {

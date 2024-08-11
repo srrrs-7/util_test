@@ -10,6 +10,15 @@ type Custom struct {
 	Name interface{}
 }
 
+func (c *Custom) Count() int {
+	arr, ok := c.Name.([]int)
+	if !ok {
+		return -1
+	}
+
+	return len(arr)
+}
+
 func (c *Custom) TypeCheck() {
 	t := reflect.TypeOf(c.Name).Kind()
 	switch t {
