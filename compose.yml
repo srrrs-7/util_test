@@ -60,8 +60,23 @@ services:
       - ./mongo/data:/data/db
       - ./mongo/init:/mongo/init
 
+  sqs:
+    image: softwaremill/elasticmq
+    ports:
+      - 9324:9324
+      - 9325:9325
+
+  goapi:
+    image: golang:1.23.0
+    working_dir: /go/src
+    volumes:
+      - ./goapi/src:/go/src
+    depends_on:
+      - mysql
+      - rds
+
   gopher:
-    image: golang:1.22.0
+    image: golang:1.23.0
     working_dir: /go/src
     volumes:
       - ./go/src:/go/src
@@ -171,3 +186,11 @@ services:
       - 8686:8686 # browser
     volumes:
       - ./observer/vector/config.yaml:/etc/vector/vector.yaml
+
+  aws:
+    image: amazon/aws-cli
+    environment:
+      AWS_DEFAULT_REGION: ap-northeast-1
+      AWS_DEFAULT_OUTPUT: json
+      AWS_ACCESS_KEY_ID: YOUR_AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY: YOUR_AWS_SECRET_ACCESS_KEY

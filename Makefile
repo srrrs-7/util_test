@@ -23,7 +23,16 @@ psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test -f /postgres/init/init.sql
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
 
-.PHONY: redis mongo gopher rust node deno bun php linux k6 plantuml
+.PHONY: sqs send receive 
+SQS_ENDPOINT="http://sqs:9324" 
+sqs:
+	docker compose up -d sqs --build
+send:
+	docker compose run --rm aws aws sqs send-message --queue-url ${SQS_ENDPOINT} --message-body "hello sqs"
+receive:
+	docker compose run --rm aws aws sqs receive-message --queue-url ${SQS_ENDPOINT}
+
+.PHONY: redis mongo goapi gopher rust node deno bun php linux k6 plantuml
 redis:
 	docker compose up -d rds --build
 	docker compose exec rds bash
@@ -31,6 +40,9 @@ mongo:
 	docker compose up -d mongo --build
 	docker compose exec mongo bash /mongo/init/mongo.sh
 	docker compose exec mongo bash
+goapi:
+	docker compose build goapi
+	docker compose run --rm goapi bash
 gopher:
 	docker compose build gopher
 	docker compose run --rm gopher bash
