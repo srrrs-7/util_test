@@ -1,5 +1,5 @@
 package request
 
 type Params struct {
-	Id string `json:"id"`
+	UserId string `json:"user_id"`
 }

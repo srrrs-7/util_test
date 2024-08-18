@@ -1,6 +1,6 @@
 package domain
 
-import "api/driver/model"
+import "context"
 
 type Queuer interface {
 	Send(msg string) (string, error)
@@ -14,9 +14,9 @@ type Cacher interface {
 	Delete(key string) error
 }
 
-type Querier interface {
-	Select(id string) ([]model.User, error)
-	Insert(user model.User) error
-	Update(user model.User) error
-	Delete(user model.User) error
+type Querier[T any] interface {
+	Select(ctx context.Context, id string) ([]T, error)
+	Insert(ctx context.Context, value T) error
+	Update(ctx context.Context, value T) error
+	Delete(ctx context.Context, value T) error
 }
