@@ -9,7 +9,7 @@ RUN go build -ldflags="-s -w" -gcflags="-N -l" -buildmode="pie" \
     -o /go/bin/worker /go/src/cmd/worker
 
 
-FROM scratch AS runner
+FROM scratch
 COPY --from=builder /go/bin/worker /usr/local/bin/worker
 
 CMD [ "/usr/local/bin/worker" ]

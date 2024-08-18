@@ -1,11 +1,18 @@
 package main
 
 import (
+	"api/domain/usecase"
 	"api/driver"
 	"api/driver/model"
 	"api/driver/repository"
+	"api/handle"
 	"api/util/env"
 	"api/util/utillog"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func init() {
@@ -24,7 +31,33 @@ func main() {
 	defer cache.Close()
 
 	repository.NewDbRepo[model.User](db)
-	repository.NewCacheRepo[model.CacheModel](cache)
-	repository.NewQueueRepo[model.QueueModel](driver.NewQueue(), env.SQS_URL)
+	cacheRepo := repository.NewCacheRepo[model.CacheModel](cache)
+	queueRepo := repository.NewQueueRepo[model.QueueModel](driver.NewQueue(), env.SQS_URL)
+
+	r := handle.NewServer(
+		usecase.NewCheckUseCase(cacheRepo),
+		usecase.NewCreateUseCase(queueRepo, cacheRepo),
+	).Routing()
+
+	if err := http.ListenAndServe(env.API_PORT, r); err != nil {
+		panic(err.Error())
+	}
+
+	srv := &http.Server{
+		Addr:    env.API_PORT,
+		Handler: r,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error(err.Error())
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+	slog.Info("Shutdown Server ...")
 
 }

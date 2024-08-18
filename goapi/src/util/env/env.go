@@ -6,12 +6,14 @@ import (
 )
 
 const (
+	API_PORT  = "API_PORT"
 	DB_URL    = "DB_URL"
 	CACHE_URL = "CACHE_URL"
 	SQS_URL   = "SQS_URL"
 )
 
 type Env struct {
+	API_PORT  string
 	DB_URL    string
 	CACHE_URL string
 	SQS_URL   string
@@ -19,6 +21,7 @@ type Env struct {
 
 func NewEnv() Env {
 	return Env{
+		API_PORT:  os.Getenv(API_PORT),
 		DB_URL:    os.Getenv(DB_URL),
 		CACHE_URL: os.Getenv(CACHE_URL),
 		SQS_URL:   os.Getenv(SQS_URL),
@@ -26,7 +29,7 @@ func NewEnv() Env {
 }
 
 func (e Env) Validate() bool {
-	if e.DB_URL == "" || e.CACHE_URL == "" || e.SQS_URL == "" {
+	if e.API_PORT == "" || e.DB_URL == "" || e.CACHE_URL == "" || e.SQS_URL == "" {
 		return false
 	}
 	return true
