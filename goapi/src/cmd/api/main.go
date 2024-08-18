@@ -39,17 +39,8 @@ func main() {
 		usecase.NewCreateUseCase(queueRepo, cacheRepo),
 	).Routing()
 
-	if err := http.ListenAndServe(env.API_PORT, r); err != nil {
-		panic(err.Error())
-	}
-
-	srv := &http.Server{
-		Addr:    env.API_PORT,
-		Handler: r,
-	}
-
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := http.ListenAndServe(env.API_PORT, r); err != nil && err != http.ErrServerClosed {
 			slog.Error(err.Error())
 		}
 	}()
@@ -59,5 +50,4 @@ func main() {
 
 	<-quit
 	slog.Info("Shutdown Server ...")
-
 }

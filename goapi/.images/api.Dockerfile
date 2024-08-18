@@ -3,15 +3,19 @@ FROM golang:latest AS builder
 ADD ./goapi/src /go/src
 WORKDIR /go/src
 
-ARG GOARCH='arm64'
-ARG GOOS='linux'
-RUN go build -ldflags="-s -w" -gcflags="-N -l" -buildmode="pie" \
+ARG GOOS=linux
+ARG GOARCH=arm64
+ARG CGO_ENABLED=false
+RUN go build -ldflags="-s -w" -gcflags="-N" -buildmode="pie" \
     -o /go/bin/api /go/src/cmd/api
-
-
-FROM scratch
-COPY --from=builder /go/bin/api /usr/local/bin/api
 
 EXPOSE 8080
 
-CMD [ "/usr/local/bin/api" ]
+CMD ["/go/bin/api"]
+
+# FROM alpine:3
+# COPY --from=builder /go/bin/api /usr/local/bin/api
+
+# EXPOSE 8080
+
+# CMD [ "/usr/local/bin/api" ]
