@@ -76,11 +76,6 @@ services:
       DB_URL: root:root@tcp(mysql:3306)/test?charset=utf8mb4&parseTime=True&loc=Local
       CACHE_URL: http://rds:6370
       SQS_URL: http://sqs:9324/000000000000/test
-    depends_on:
-      - goworker
-      - mysql
-      - rds
-      - sqs
 
   goworker:
     build:
@@ -90,10 +85,6 @@ services:
       DB_URL: root:root@tcp(mysql:3306)/test?charset=utf8mb4&parseTime=True&loc=Local
       CACHE_URL: http://rds:6370
       SQS_URL: http://sqs:9324/000000000000/test
-    depends_on:
-      - mysql
-      - rds
-      - sqs
 
   gopher:
     image: golang:1.23.0
