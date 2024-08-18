@@ -8,6 +8,7 @@ import (
 	"api/util/env"
 	"api/util/utillog"
 	"context"
+	"log/slog"
 	"sync"
 )
 
@@ -18,6 +19,7 @@ func init() {
 func main() {
 	env := env.NewEnv()
 	if ok := env.Validate(); !ok {
+		slog.Error("error init env", "env", env.OutPut())
 		panic("error init env")
 	}
 
@@ -33,4 +35,5 @@ func main() {
 		repository.NewQueueRepo[model.QueueModel](driver.NewQueue(), env.SQS_URL),
 		repository.NewCacheRepo[model.CacheModel](cache),
 	).Work(context.Background())
+	slog.Info("start worker")
 }

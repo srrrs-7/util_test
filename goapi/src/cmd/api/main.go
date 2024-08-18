@@ -22,6 +22,7 @@ func init() {
 func main() {
 	env := env.NewEnv()
 	if ok := env.Validate(); !ok {
+		slog.Error("error init env", "env", env.OutPut())
 		panic("error init env")
 	}
 
@@ -40,6 +41,7 @@ func main() {
 	).Routing()
 
 	go func() {
+		slog.Info("Server Start")
 		if err := http.ListenAndServe(env.API_PORT, r); err != nil && err != http.ErrServerClosed {
 			slog.Error(err.Error())
 		}
@@ -49,5 +51,5 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	slog.Info("Shutdown Server ...")
+	slog.Info("Shutdown Server")
 }
