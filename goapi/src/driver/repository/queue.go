@@ -13,14 +13,11 @@ type QueueRepo[T any] struct {
 	url    string
 }
 
-func NewQueueRepo[T any](c *sqs.Client, url string) QueueRepo[T] {
-	return QueueRepo[T]{
-		client: c,
-		url:    url,
-	}
+func NewQueueRepo[T any](client *sqs.Client, url string) QueueRepo[T] {
+	return QueueRepo[T]{client, url}
 }
 
-func (q QueueRepo[T]) Send(ctx context.Context, msg string) (string, error) {
+func (q QueueRepo[T]) EnQueue(ctx context.Context, msg string) (string, error) {
 	res, err := q.client.SendMessage(ctx, &sqs.SendMessageInput{
 		QueueUrl:    (*string)(unsafe.Pointer(&q.url)),
 		MessageBody: (*string)(unsafe.Pointer(&msg)),
@@ -33,7 +30,7 @@ func (q QueueRepo[T]) Send(ctx context.Context, msg string) (string, error) {
 
 }
 
-func (q QueueRepo[T]) Receive(ctx context.Context) (*T, error) {
+func (q QueueRepo[T]) DeQueue(ctx context.Context) (*T, error) {
 	res, err := q.client.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
 		QueueUrl:            (*string)(unsafe.Pointer(&q.url)),
 		MaxNumberOfMessages: 1,
@@ -52,7 +49,7 @@ func (q QueueRepo[T]) Receive(ctx context.Context) (*T, error) {
 	return &j, nil
 }
 
-func (q QueueRepo[T]) Delete(ctx context.Context, id string) error {
+func (q QueueRepo[T]) DelQueue(ctx context.Context, id string) error {
 	_, err := q.client.DeleteMessage(ctx, &sqs.DeleteMessageInput{
 		QueueUrl:      (*string)(unsafe.Pointer(&q.url)),
 		ReceiptHandle: (*string)(unsafe.Pointer(&id)),

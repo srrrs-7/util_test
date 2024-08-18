@@ -1,6 +1,7 @@
 package handle
 
 import (
+	"api/domain/usecase"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -14,10 +15,13 @@ const (
 	STATUS_PATH  = "/status"
 )
 
-type Server struct{}
+type Server struct {
+	checker usecase.CheckUseCase
+	creator usecase.CreateUseCase
+}
 
-func NewServer() Server {
-	return Server{}
+func NewServer(checker usecase.CheckUseCase, creator usecase.CreateUseCase) Server {
+	return Server{checker, creator}
 }
 
 func (s Server) Routing() *chi.Mux {
@@ -29,8 +33,8 @@ func (s Server) Routing() *chi.Mux {
 		r.Route(USER_ID_PATH, func(r chi.Router) {
 			r.Use(r.Middlewares()...)
 			r.Group(func(r chi.Router) {
-				r.Post(CREATE_PATH, func(w http.ResponseWriter, r *http.Request) {})
-				r.Get(STATUS_PATH, func(w http.ResponseWriter, r *http.Request) {})
+				r.Post(CREATE_PATH, s.creator.Create())
+				r.Get(STATUS_PATH, s.checker.Check())
 			})
 		})
 

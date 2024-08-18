@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"api/domain"
+	"api/driver/model"
 	"context"
 	"fmt"
 	"log/slog"
@@ -18,12 +20,16 @@ type thread struct {
 }
 
 type WorkerUseCase struct {
+	queue  domain.Queuer[model.QueueModel]
+	cache  domain.Cacher[model.CacheModel]
 	thread *thread
 }
 
-func NewWorkerUseCase(m *sync.Mutex) *WorkerUseCase {
+func NewWorkerUseCase(m *sync.Mutex, q domain.Queuer[model.QueueModel], c domain.Cacher[model.CacheModel]) *WorkerUseCase {
 	return &WorkerUseCase{
-		&thread{
+		queue: q,
+		cache: c,
+		thread: &thread{
 			mu:  m,
 			cnt: 0,
 		},
@@ -58,6 +64,7 @@ func (u *WorkerUseCase) concurrencyWork(
 ) {
 	for {
 		if u.thread.cnt >= MAX_THREAD_CNT {
+			slog.Info("max thread cnt reached", "count", u.thread.cnt)
 			time.Sleep(100 * time.Microsecond)
 			continue
 		}
@@ -65,9 +72,9 @@ func (u *WorkerUseCase) concurrencyWork(
 
 		// set status
 
-		u.threadCntUp()
+		u.thread.increment()
 		// work logic
-		u.threadCntDown()
+		u.thread.decrement()
 
 		// set new status
 
@@ -77,14 +84,14 @@ func (u *WorkerUseCase) concurrencyWork(
 	}
 }
 
-func (u *WorkerUseCase) threadCntUp() {
-	u.thread.mu.Lock()
-	defer u.thread.mu.Unlock()
-	u.thread.cnt++
+func (t *thread) increment() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.cnt++
 }
 
-func (u *WorkerUseCase) threadCntDown() {
-	u.thread.mu.Lock()
-	defer u.thread.mu.Unlock()
-	u.thread.cnt--
+func (t *thread) decrement() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.cnt--
 }
