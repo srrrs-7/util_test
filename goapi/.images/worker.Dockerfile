@@ -9,7 +9,7 @@ ARG CGO_ENABLED=false
 RUN go build -ldflags "-s -w" -gcflags "-N" -buildmode "pie" \
     -o /go/bin/worker /go/src/cmd/worker
 
-CMD ["/go/bin/api"]
+CMD ["/go/bin/worker"]
 
 
 # FROM alpine:3
