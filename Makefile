@@ -28,9 +28,9 @@ SQS_ENDPOINT="http://sqs:9324"
 sqs:
 	docker compose up -d sqs --build
 send:
-	docker compose run --rm aws aws sqs send-message --queue-url ${SQS_ENDPOINT} --message-body "hello sqs"
+	docker compose run --rm aws sqs send-message --queue-url ${SQS_ENDPOINT} --message-body "hello sqs"
 receive:
-	docker compose run --rm aws aws sqs receive-message --queue-url ${SQS_ENDPOINT}
+	docker compose run --rm aws sqs receive-message --queue-url ${SQS_ENDPOINT}
 
 .PHONY: redis mongo goapi gopher rust node deno bun php linux k6 plantuml
 redis:
