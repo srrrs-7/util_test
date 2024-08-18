@@ -38,7 +38,7 @@ func (q QueueRepo[T]) Receive(ctx context.Context) (*T, error) {
 		QueueUrl:            (*string)(unsafe.Pointer(&q.url)),
 		MaxNumberOfMessages: 1,
 		WaitTimeSeconds:     1,
-		VisibilityTimeout:   1,
+		VisibilityTimeout:   3,
 	})
 	if err != nil {
 		return nil, err

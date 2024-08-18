@@ -29,9 +29,9 @@ QUEUE_URL="http://sqs:9324/000000000000/test"
 sqs:
 	docker compose up -d sqs --build
 	docker compose run --rm aws sqs create-queue --queue-name=test --endpoint-url=$(SQS_ENDPOINT)
-send:
+enqueue:
 	docker compose run --rm aws sqs send-message --endpoint-url=$(SQS_ENDPOINT) --queue-url=${QUEUE_URL} --message-body="hello sqs"
-receive:
+dequeue:
 	docker compose run --rm aws sqs receive-message --endpoint-url=$(SQS_ENDPOINT) --queue-url=${QUEUE_URL}
 
 .PHONY: redis mongo goapi gopher rust node deno bun php linux k6 plantuml

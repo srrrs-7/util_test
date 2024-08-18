@@ -5,10 +5,10 @@ import (
 	"net/http"
 )
 
-type CheckUseCase struct{}
+type CreateUseCase struct{}
 
-// API request -> get status -> API response
-func (u CheckUseCase) Check() http.HandlerFunc {
+// API request -> send queue -> set redis -> API response
+func (u CreateUseCase) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		utilhttp.ResponseOk(w, nil)
 	}
