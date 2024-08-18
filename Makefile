@@ -24,13 +24,15 @@ psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
 
 .PHONY: sqs send receive 
-SQS_ENDPOINT="http://sqs:9324" 
+SQS_ENDPOINT="http://sqs:9324"
+QUEUE_URL="http://sqs:9324/000000000000/test"
 sqs:
 	docker compose up -d sqs --build
+	docker compose run --rm aws sqs create-queue --queue-name=test --endpoint-url=$(SQS_ENDPOINT)
 send:
-	docker compose run --rm aws sqs send-message --queue-url ${SQS_ENDPOINT} --message-body "hello sqs"
+	docker compose run --rm aws sqs send-message --endpoint-url=$(SQS_ENDPOINT) --queue-url=${QUEUE_URL} --message-body="hello sqs"
 receive:
-	docker compose run --rm aws sqs receive-message --queue-url ${SQS_ENDPOINT}
+	docker compose run --rm aws sqs receive-message --endpoint-url=$(SQS_ENDPOINT) --queue-url=${QUEUE_URL}
 
 .PHONY: redis mongo goapi gopher rust node deno bun php linux k6 plantuml
 redis:
