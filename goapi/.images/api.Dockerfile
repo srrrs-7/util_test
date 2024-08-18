@@ -5,7 +5,8 @@ WORKDIR /go/src
 
 ARG GOARCH='amd64'
 ARG GOOS='linux'
-RUN go build -o /go/bin/api /go/src/cmd -ldflags="-s -w" -gcflags="-N -l" -buildmode=pie
+RUN go build -ldflags="-s -w" -gcflags="-N -l" -buildmode="pie" \
+    -o /go/bin/api /go/src/cmd/api
 
 
 FROM scrach AS runner
