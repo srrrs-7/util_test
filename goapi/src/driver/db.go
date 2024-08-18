@@ -14,12 +14,12 @@ func NewDb(dsn string) (*gorm.DB, *sql.DB) {
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
-		panic("failed to connect database")
+		panic(err.Error())
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		panic("failed to get database connection")
+		panic(err.Error())
 	}
 
 	sqlDB.SetMaxIdleConns(10)
@@ -28,7 +28,7 @@ func NewDb(dsn string) (*gorm.DB, *sql.DB) {
 
 	err = sqlDB.Ping()
 	if err != nil {
-		panic("failed to ping database")
+		panic(err.Error())
 	}
 
 	return db, sqlDB
