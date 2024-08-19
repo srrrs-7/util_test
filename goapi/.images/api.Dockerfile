@@ -4,12 +4,12 @@ ADD ./goapi/src /go/src
 WORKDIR /go/src
 
 ARG GOOS=linux
-ARG GOARCH=arm64
+ARG GOARCH=amd64
 ARG CGO_ENABLED=false
 RUN go build -ldflags="-s -w" -gcflags="-N" -buildmode="pie" \
     -o /go/bin/api /go/src/cmd/api
 
-FROM alpine:3
+FROM scratch
 COPY --from=builder /go/bin/api /usr/local/bin/api
 
 EXPOSE 8080
