@@ -13,6 +13,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 func init() {
@@ -31,9 +33,16 @@ func main() {
 	cache := driver.NewCache(env.CACHE_URL)
 	defer cache.Close()
 
+	var queue *sqs.Client
+	if env.MODE == "debug" {
+		queue = driver.NewLocalQueue(env.SQS_URL)
+	} else {
+		queue = driver.NewQueue()
+	}
+
 	repository.NewDbRepo[model.User](db)
 	cacheRepo := repository.NewCacheRepo[model.CacheModel](cache)
-	queueRepo := repository.NewQueueRepo[model.QueueModel](driver.NewQueue(), env.SQS_URL)
+	queueRepo := repository.NewQueueRepo[model.QueueModel](queue, env.SQS_URL)
 
 	r := handle.NewServer(
 		usecase.NewCheckUseCase(cacheRepo),

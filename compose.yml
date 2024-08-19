@@ -72,6 +72,7 @@ services:
     ports:
       - 8080:8080
     environment:
+      MODE: debug
       API_PORT: :8080
       DB_URL: root:root@tcp(mysql:3306)/test?charset=utf8mb4&parseTime=True&loc=Local
       CACHE_URL: http://rds:6370
@@ -81,6 +82,7 @@ services:
     build:
       dockerfile: ./goapi/.images/worker.Dockerfile
     environment:
+      MODE: debug
       API_PORT: :8080
       DB_URL: root:root@tcp(mysql:3306)/test?charset=utf8mb4&parseTime=True&loc=Local
       CACHE_URL: http://rds:6370

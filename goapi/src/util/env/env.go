@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	MODE      = "MODE"
 	API_PORT  = "API_PORT"
 	DB_URL    = "DB_URL"
 	CACHE_URL = "CACHE_URL"
@@ -13,6 +14,7 @@ const (
 )
 
 type Env struct {
+	MODE      string
 	API_PORT  string
 	DB_URL    string
 	CACHE_URL string
@@ -21,6 +23,7 @@ type Env struct {
 
 func NewEnv() Env {
 	return Env{
+		MODE:      os.Getenv(MODE),
 		API_PORT:  os.Getenv(API_PORT),
 		DB_URL:    os.Getenv(DB_URL),
 		CACHE_URL: os.Getenv(CACHE_URL),
@@ -29,7 +32,7 @@ func NewEnv() Env {
 }
 
 func (e Env) Validate() bool {
-	if e.API_PORT == "" || e.DB_URL == "" || e.CACHE_URL == "" || e.SQS_URL == "" {
+	if e.MODE == "" || e.API_PORT == "" || e.DB_URL == "" || e.CACHE_URL == "" || e.SQS_URL == "" {
 		return false
 	}
 	return true

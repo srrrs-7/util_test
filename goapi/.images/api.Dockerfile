@@ -9,13 +9,9 @@ ARG CGO_ENABLED=false
 RUN go build -ldflags="-s -w" -gcflags="-N" -buildmode="pie" \
     -o /go/bin/api /go/src/cmd/api
 
+FROM alpine:3
+COPY --from=builder /go/bin/api /usr/local/bin/api
+
 EXPOSE 8080
 
-CMD ["/go/bin/api"]
-
-# FROM alpine:3
-# COPY --from=builder /go/bin/api /usr/local/bin/api
-
-# EXPOSE 8080
-
-# CMD [ "/usr/local/bin/api" ]
+CMD [ "/usr/local/bin/api" ]
