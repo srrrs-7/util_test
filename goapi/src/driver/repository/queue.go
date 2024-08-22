@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"api/domain/entity"
+	"api/driver/model"
 	"context"
 	"encoding/json"
 	"unsafe"
@@ -17,7 +19,7 @@ func NewQueueRepo[T any](client *sqs.Client, url string) QueueRepo[T] {
 	return QueueRepo[T]{client, url}
 }
 
-func (q QueueRepo[T]) EnQueue(ctx context.Context, msg string) (string, error) {
+func (q QueueRepo[T]) EnQueue(ctx context.Context, msg string) (entity.QueueId, error) {
 	res, err := q.client.SendMessage(ctx, &sqs.SendMessageInput{
 		QueueUrl:    (*string)(unsafe.Pointer(&q.url)),
 		MessageBody: (*string)(unsafe.Pointer(&msg)),
@@ -26,11 +28,10 @@ func (q QueueRepo[T]) EnQueue(ctx context.Context, msg string) (string, error) {
 		return "", err
 	}
 
-	return *(*string)(unsafe.Pointer(res.MessageId)), nil
-
+	return entity.QueueId(*(*string)(unsafe.Pointer(res.MessageId))), nil
 }
 
-func (q QueueRepo[T]) DeQueue(ctx context.Context) (*T, error) {
+func (q QueueRepo[T]) DeQueue(ctx context.Context) (*model.QueueModel[T], error) {
 	res, err := q.client.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
 		QueueUrl:            (*string)(unsafe.Pointer(&q.url)),
 		MaxNumberOfMessages: 1,
@@ -46,7 +47,11 @@ func (q QueueRepo[T]) DeQueue(ctx context.Context) (*T, error) {
 		return nil, err
 	}
 
-	return &j, nil
+	return &model.QueueModel[T]{
+		Id:        *res.Messages[0].MessageId,
+		Body:      j,
+		ReceiptId: *res.Messages[0].ReceiptHandle,
+	}, nil
 }
 
 func (q QueueRepo[T]) DelQueue(ctx context.Context, id string) error {

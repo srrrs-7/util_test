@@ -2,12 +2,17 @@ package utilhttp
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 )
 
-func RequestUrlParam(req *http.Request, key string) string {
-	return req.URL.Query().Get(key)
+func RequestUrlParam[T comparable](req *http.Request, key string) (T, error) {
+	t, ok := req.Context().Value(key).(T)
+	if !ok {
+		return t, errors.New(key + " not found")
+	}
+	return t, nil
 }
 
 func RequestBody[T any](req *http.Request) T {

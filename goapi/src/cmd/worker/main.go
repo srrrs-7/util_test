@@ -1,10 +1,12 @@
 package main
 
 import (
+	"api/domain/entity"
 	"api/domain/usecase"
 	"api/driver"
 	"api/driver/model"
 	"api/driver/repository"
+	"api/handle/request"
 	"api/util/env"
 	"api/util/utillog"
 	"context"
@@ -19,8 +21,8 @@ func init() {
 }
 
 func main() {
-	env := env.NewEnv()
-	if ok := env.Validate(); !ok {
+	env, ok := env.NewEnv().Validate()
+	if !ok {
 		slog.Error("error init env", "env", env.OutPut())
 		panic("error init env")
 	}
@@ -41,8 +43,9 @@ func main() {
 
 	usecase.NewWorkerUseCase(
 		&sync.Mutex{},
-		repository.NewQueueRepo[model.QueueModel](queue, env.SQS_URL),
-		repository.NewCacheRepo[model.CacheModel](cache),
+		repository.NewQueueRepo[model.QueueModel[request.Params]](queue, env.SQS_URL),
+		repository.NewCacheRepo[entity.CheckStatusEnt](cache, env.CACHE_TTL, env.CACHE_PREFIX),
 	).Work(context.Background())
+
 	slog.Info("start worker")
 }

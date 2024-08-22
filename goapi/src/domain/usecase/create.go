@@ -2,20 +2,22 @@ package usecase
 
 import (
 	"api/domain"
+	"api/domain/entity"
 	"api/driver/model"
 	"api/handle/request"
 	"api/handle/response"
+	"api/util/static"
 	"api/util/utilhttp"
 	"log/slog"
 	"net/http"
 )
 
 type CreateUseCase struct {
-	queue domain.Queuer[model.QueueModel]
-	cache domain.Cacher[model.CacheModel]
+	queue domain.Queuer[model.QueueModel[request.Params]]
+	cache domain.Cacher[entity.CheckStatusEnt]
 }
 
-func NewCreateUseCase(queue domain.Queuer[model.QueueModel], cache domain.Cacher[model.CacheModel]) CreateUseCase {
+func NewCreateUseCase(queue domain.Queuer[model.QueueModel[request.Params]], cache domain.Cacher[entity.CheckStatusEnt]) CreateUseCase {
 	return CreateUseCase{queue, cache}
 }
 
@@ -26,7 +28,7 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 		if err != nil {
 			slog.Error("request json error", "error", err.Error())
 			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
-			utilhttp.ResponseInternalServerError(w, j)
+			utilhttp.ResponseBadRequest(w, j)
 			return
 		}
 
@@ -38,15 +40,27 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 			return
 		}
 
-		userId := utilhttp.RequestUrlParam(r, "userId")
-		if err = u.cache.Set(r.Context(), userId, qId); err != nil {
+		userId, err := utilhttp.RequestUrlParam[string](r, "userId")
+		if err != nil {
+			slog.Error("request url param error", "error", err.Error())
+			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			utilhttp.ResponseBadRequest(w, j)
+			return
+		}
+
+		status := entity.CheckStatusEnt{
+			Id:     qId,
+			UserId: entity.UserId(userId),
+			Status: entity.PENDING,
+		}
+		if err = u.cache.Set(r.Context(), qId, status); err != nil {
 			slog.Error("set cache error", "error", err.Error())
 			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
 			utilhttp.ResponseInternalServerError(w, j)
 			return
 		}
 
-		j, err = utilhttp.Json(response.StatusRes{Id: qId, Status: response.PENDING})
+		j, err = utilhttp.Json(response.StatusRes{Id: qId.String(), Status: static.PENDING})
 		if err != nil {
 			slog.Error("response json error", "error", err.Error())
 			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})

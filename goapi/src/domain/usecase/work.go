@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"api/domain"
+	"api/domain/entity"
 	"api/driver/model"
+	"api/handle/request"
 	"context"
 	"fmt"
 	"log/slog"
@@ -20,12 +22,16 @@ type thread struct {
 }
 
 type WorkerUseCase struct {
-	queue  domain.Queuer[model.QueueModel]
-	cache  domain.Cacher[model.CacheModel]
+	queue  domain.Queuer[model.QueueModel[request.Params]]
+	cache  domain.Cacher[entity.CheckStatusEnt]
 	thread *thread
 }
 
-func NewWorkerUseCase(m *sync.Mutex, q domain.Queuer[model.QueueModel], c domain.Cacher[model.CacheModel]) *WorkerUseCase {
+func NewWorkerUseCase(
+	m *sync.Mutex,
+	q domain.Queuer[model.QueueModel[request.Params]],
+	c domain.Cacher[entity.CheckStatusEnt],
+) *WorkerUseCase {
 	return &WorkerUseCase{
 		queue: q,
 		cache: c,
@@ -41,8 +47,10 @@ func (u *WorkerUseCase) Work(ctx context.Context) {
 	doneCh := make(chan struct{})
 	errCh := make(chan error)
 
-	defer close(doneCh)
-	defer close(errCh)
+	defer func() {
+		close(doneCh)
+		close(errCh)
+	}()
 
 	go u.concurrencyWork(ctx, doneCh, errCh)
 

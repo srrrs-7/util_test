@@ -1,11 +1,13 @@
 package main
 
 import (
+	"api/domain/entity"
 	"api/domain/usecase"
 	"api/driver"
 	"api/driver/model"
 	"api/driver/repository"
 	"api/handle"
+	"api/handle/request"
 	"api/util/env"
 	"api/util/utillog"
 	"log/slog"
@@ -22,8 +24,8 @@ func init() {
 }
 
 func main() {
-	env := env.NewEnv()
-	if ok := env.Validate(); !ok {
+	env, ok := env.NewEnv().Validate()
+	if !ok {
 		slog.Error("error init env", "env", env.OutPut())
 		panic("error init env")
 	}
@@ -41,8 +43,8 @@ func main() {
 	}
 
 	repository.NewDbRepo[model.User](db)
-	cacheRepo := repository.NewCacheRepo[model.CacheModel](cache)
-	queueRepo := repository.NewQueueRepo[model.QueueModel](queue, env.SQS_URL)
+	cacheRepo := repository.NewCacheRepo[entity.CheckStatusEnt](cache, env.CACHE_TTL, env.CACHE_PREFIX)
+	queueRepo := repository.NewQueueRepo[model.QueueModel[request.Params]](queue, env.SQS_URL)
 
 	r := handle.NewServer(
 		usecase.NewCheckUseCase(cacheRepo),

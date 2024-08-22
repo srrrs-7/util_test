@@ -1,18 +1,16 @@
 package entity
 
-import "api/handle/response"
+const (
+	PENDING Status = "PENDING"
+	DONE    Status = "DONE"
+	ERROR   Status = "ERROR"
+)
 
-type QueueId string
 type Status string
+type UserId string
 
 type CheckStatusEnt struct {
-	Id     QueueId
-	Status Status
-}
-
-func (e *CheckStatusEnt) Response() response.StatusRes {
-	return response.StatusRes{
-		Id:     string(e.Id),
-		Status: string(e.Status),
-	}
+	Id     QueueId `json:"id"`
+	UserId UserId  `json:"userId"`
+	Status Status  `json:"status"`
 }
