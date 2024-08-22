@@ -6,8 +6,7 @@ WORKDIR /go/src
 ARG GOOS=linux
 ARG GOARCH=amd64
 ARG CGO_ENABLED=false
-RUN go build -ldflags="-s -w" -gcflags="-N" -buildmode="pie" \
-    -o /go/bin/api /go/src/cmd/api
+RUN go build -ldflags="-s -w" -o /go/bin/api /go/src/cmd/api
 
 FROM scratch
 COPY --from=builder /go/bin/api /usr/local/bin/api

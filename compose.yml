@@ -93,6 +93,7 @@ services:
     working_dir: /go/src
     volumes:
       - ./go/src:/go/src
+      - ./goapi/src:/go/goapi/src
 
   rust:
     image: rust:latest
