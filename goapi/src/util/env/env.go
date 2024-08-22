@@ -51,7 +51,7 @@ func NewEnv() *env {
 }
 
 func (e *env) Validate() (*Env, bool) {
-	if e.MODE == "" || e.MODE != "debug" || e.MODE != "release" {
+	if e.MODE == "" {
 		slog.Error("ENV MODE is invalid debug or release", "mode", e.MODE)
 		return nil, false
 	}
