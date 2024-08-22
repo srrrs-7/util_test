@@ -5,15 +5,12 @@ import (
 	"api/domain/entity"
 	"api/driver/model"
 	"api/handle/request"
+	"api/util/static"
 	"context"
 	"fmt"
 	"log/slog"
 	"sync"
 	"time"
-)
-
-const (
-	MAX_THREAD_CNT = 100
 )
 
 type thread struct {
@@ -71,7 +68,7 @@ func (u *WorkerUseCase) concurrencyWork(
 	errCh chan<- error,
 ) {
 	for {
-		if u.thread.cnt >= MAX_THREAD_CNT {
+		if u.thread.cnt >= static.MAX_THREAD_CNT {
 			slog.Info("max thread cnt reached", "count", u.thread.cnt)
 			time.Sleep(100 * time.Microsecond)
 			continue
