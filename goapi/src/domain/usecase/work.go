@@ -7,6 +7,7 @@ import (
 	"api/handle/request"
 	"api/util/static"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -92,7 +93,7 @@ func (u *WorkerUseCase) concurrencyWork(
 		// set new status
 
 		doneCh <- struct{}{}
-		errCh <- nil
+		errCh <- errors.New("error")
 		ctx.Done()
 	}
 }
