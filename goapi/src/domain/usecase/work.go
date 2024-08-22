@@ -43,6 +43,8 @@ func NewWorkerUseCase(
 func (u *WorkerUseCase) Work(ctx context.Context) {
 	doneCh := make(chan struct{})
 	errCh := make(chan error)
+	timer := time.NewTicker(1 * time.Second)
+	defer timer.Stop()
 
 	defer func() {
 		close(doneCh)
@@ -53,6 +55,12 @@ func (u *WorkerUseCase) Work(ctx context.Context) {
 
 	for {
 		select {
+		case <-timer.C:
+			slog.Info("ticker", "count", u.thread.cnt)
+
+		case <-ctx.Done():
+			slog.Info("context done")
+
 		case s := <-doneCh:
 			fmt.Println(s)
 
@@ -70,7 +78,8 @@ func (u *WorkerUseCase) concurrencyWork(
 	for {
 		if u.thread.cnt >= static.MAX_THREAD_CNT {
 			slog.Info("max thread cnt reached", "count", u.thread.cnt)
-			time.Sleep(100 * time.Microsecond)
+			time.Sleep(1 * time.Second)
+			u.thread.decrement()
 			continue
 		}
 		// dequeue
@@ -79,7 +88,6 @@ func (u *WorkerUseCase) concurrencyWork(
 
 		u.thread.increment()
 		// work logic
-		u.thread.decrement()
 
 		// set new status
 
