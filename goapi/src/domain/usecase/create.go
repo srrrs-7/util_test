@@ -17,7 +17,10 @@ type CreateUseCase struct {
 	cache domain.Cacher[entity.CheckStatusEnt]
 }
 
-func NewCreateUseCase(queue domain.Queuer[model.QueueModel[request.Params]], cache domain.Cacher[entity.CheckStatusEnt]) CreateUseCase {
+func NewCreateUseCase(
+	queue domain.Queuer[model.QueueModel[request.Params]],
+	cache domain.Cacher[entity.CheckStatusEnt],
+) CreateUseCase {
 	return CreateUseCase{queue, cache}
 }
 
