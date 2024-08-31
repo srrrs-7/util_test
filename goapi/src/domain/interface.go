@@ -4,12 +4,14 @@ import (
 	"api/domain/entity"
 	"api/driver/model"
 	"context"
+
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 type Queuer[T any] interface {
 	EnQueue(ctx context.Context, msg string) (entity.QueueId, error)
-	DeQueue(ctx context.Context) (*model.QueueModel[T], error)
-	DelQueue(ctx context.Context, id string) error
+	DeQueue(ctx context.Context) ([]*model.QueueModel[T], error)
+	DelQueue(ctx context.Context, entries []types.DeleteMessageBatchRequestEntry) error
 }
 
 type Cacher[T any] interface {

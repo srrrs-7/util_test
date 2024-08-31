@@ -8,6 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 type QueueRepo[T any] struct {
@@ -31,33 +32,50 @@ func (q QueueRepo[T]) EnQueue(ctx context.Context, msg string) (entity.QueueId, 
 	return entity.QueueId(*(*string)(unsafe.Pointer(res.MessageId))), nil
 }
 
-func (q QueueRepo[T]) DeQueue(ctx context.Context) (*model.QueueModel[T], error) {
+func (q QueueRepo[T]) DeQueue(ctx context.Context) ([]*model.QueueModel[T], error) {
 	res, err := q.client.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
 		QueueUrl:            (*string)(unsafe.Pointer(&q.url)),
-		MaxNumberOfMessages: 1,
-		WaitTimeSeconds:     1,
-		VisibilityTimeout:   3,
+		MaxNumberOfMessages: 10,
+		WaitTimeSeconds:     5,
+		VisibilityTimeout:   5,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var j T
-	if err = json.Unmarshal([]byte(*res.Messages[0].Body), &j); err != nil {
-		return nil, err
+	msgs := make([]*model.QueueModel[T], 0)
+	entries := make([]types.DeleteMessageBatchRequestEntry, 0)
+	for _, msg := range res.Messages {
+		var j T
+		if err = json.Unmarshal([]byte(*msg.Body), &j); err != nil {
+			return nil, err
+		}
+
+		msgs = append(msgs, &model.QueueModel[T]{
+			Id:        *msg.MessageId,
+			Body:      j,
+			ReceiptId: *msg.ReceiptHandle,
+		})
+
+		entries = append(entries, types.DeleteMessageBatchRequestEntry{
+			Id:            msg.MessageId,
+			ReceiptHandle: msg.ReceiptHandle,
+		})
 	}
 
-	return &model.QueueModel[T]{
-		Id:        *res.Messages[0].MessageId,
-		Body:      j,
-		ReceiptId: *res.Messages[0].ReceiptHandle,
-	}, nil
+	if len(entries) > 0 {
+		if err = q.DelQueue(ctx, entries); err != nil {
+			return nil, err
+		}
+	}
+
+	return msgs, nil
 }
 
-func (q QueueRepo[T]) DelQueue(ctx context.Context, id string) error {
-	_, err := q.client.DeleteMessage(ctx, &sqs.DeleteMessageInput{
-		QueueUrl:      (*string)(unsafe.Pointer(&q.url)),
-		ReceiptHandle: (*string)(unsafe.Pointer(&id)),
+func (q QueueRepo[T]) DelQueue(ctx context.Context, entries []types.DeleteMessageBatchRequestEntry) error {
+	_, err := q.client.DeleteMessageBatch(ctx, &sqs.DeleteMessageBatchInput{
+		QueueUrl: (*string)(unsafe.Pointer(&q.url)),
+		Entries:  entries,
 	})
 	if err != nil {
 		return err

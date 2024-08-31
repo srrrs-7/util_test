@@ -105,12 +105,14 @@ func (u *WorkerUseCase) concurrencyWork(ctx context.Context, p *model.QueueModel
 
 func (u WorkerUseCase) receiveQueue(ctx context.Context, qCh chan<- *model.QueueModel[model.QueueModel[request.Params]], errCh chan<- error) {
 	for {
-		p, err := u.queue.DeQueue(ctx)
+		msgs, err := u.queue.DeQueue(ctx)
 		if err != nil {
 			errCh <- err
 		}
 
-		qCh <- p
+		for _, msg := range msgs {
+			qCh <- msg
+		}
 	}
 }
 
