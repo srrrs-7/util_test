@@ -28,9 +28,11 @@ func main() {
 	}
 
 	db, sqlDb := driver.NewDb(env.DB_URL)
-	defer sqlDb.Close()
 	cache := driver.NewCache(env.CACHE_URL)
-	defer cache.Close()
+	defer func() {
+		sqlDb.Close()
+		cache.Close()
+	}()
 
 	var queue *sqs.Client
 	if env.MODE == "debug" {
