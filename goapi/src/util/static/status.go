@@ -1,7 +1,7 @@
 package static
 
 const (
-	DONW    = "done"
+	DONE    = "done"
 	ERROR   = "error"
 	RUNNING = "runnning"
 	PENDING = "pending"

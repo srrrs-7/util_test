@@ -54,7 +54,7 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 		status := entity.CheckStatusEnt{
 			Id:     qId,
 			UserId: entity.UserId(userId),
-			Status: entity.PENDING,
+			Status: static.PENDING,
 		}
 		if err = u.cache.Set(r.Context(), qId, status); err != nil {
 			slog.Error("set cache error", "error", err.Error())

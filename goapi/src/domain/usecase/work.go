@@ -7,7 +7,6 @@ import (
 	"api/handle/request"
 	"api/util/static"
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -42,60 +41,83 @@ func NewWorkerUseCase(
 
 // receive queue -> set new status -> processing -> delete queue -> set new status
 func (u *WorkerUseCase) Work(ctx context.Context) {
-	doneCh := make(chan struct{})
+	qCh := make(chan *model.QueueModel[model.QueueModel[request.Params]])
 	errCh := make(chan error)
 	timer := time.NewTicker(1 * time.Second)
-	defer timer.Stop()
 
 	defer func() {
-		close(doneCh)
+		close(qCh)
 		close(errCh)
+		timer.Stop()
 	}()
 
-	go u.concurrencyWork(ctx, doneCh, errCh)
+	go u.receiveQueue(ctx, qCh, errCh)
 
-	for {
-		select {
-		case <-timer.C:
-			slog.Info("ticker", "count", u.thread.cnt)
-
-		case <-ctx.Done():
-			slog.Info("context done")
-
-		case s := <-doneCh:
-			fmt.Println(s)
-
-		case err := <-errCh:
-			slog.Error("work concurrency error", "error", err.Error())
-		}
-	}
-}
-
-func (u *WorkerUseCase) concurrencyWork(
-	ctx context.Context,
-	doneCh chan<- struct{},
-	errCh chan<- error,
-) {
 	for {
 		if u.thread.cnt >= static.MAX_THREAD_CNT {
 			slog.Info("max thread cnt reached", "count", u.thread.cnt)
 			time.Sleep(1 * time.Second)
-			u.thread.decrement()
 			continue
 		}
-		// dequeue
 
-		// set status
-
-		u.thread.increment()
-		// work logic
-
-		// set new status
-
-		doneCh <- struct{}{}
-		errCh <- errors.New("error")
-		ctx.Done()
+		select {
+		case <-timer.C:
+			slog.Info("ticker", "thread count", u.thread.cnt)
+		case <-ctx.Done():
+			slog.Info("context done")
+		case err := <-errCh:
+			slog.Error("work error", "error", err.Error())
+		case p := <-qCh:
+			slog.Info("concurrency work", "param", p)
+			go u.concurrencyWork(ctx, p)
+		}
 	}
+}
+
+func (u *WorkerUseCase) concurrencyWork(ctx context.Context, p *model.QueueModel[model.QueueModel[request.Params]]) {
+	u.thread.increment()
+	defer u.thread.decrement()
+
+	status := entity.CheckStatusEnt{
+		Id:     p.Entity().Id,
+		UserId: entity.UserId(1),
+		Status: entity.Status(static.PENDING),
+	}
+
+	if err := u.runWork(p); err != nil {
+		status.Status = static.ERROR
+		if err := u.cache.Set(ctx, p.Entity().Id, status); err != nil {
+			slog.Error("concurrency work set status error", "error", err.Error())
+			return
+		}
+		slog.Error("concurrency work error", "error", err.Error())
+		return
+	}
+
+	status.Status = static.DONE
+	if err := u.cache.Set(ctx, p.Entity().Id, status); err != nil {
+		slog.Error("concurrency work set status error", "error", err.Error())
+		return
+	}
+
+	ctx.Done()
+}
+
+func (u WorkerUseCase) receiveQueue(ctx context.Context, qCh chan<- *model.QueueModel[model.QueueModel[request.Params]], errCh chan<- error) {
+	for {
+		p, err := u.queue.DeQueue(ctx)
+		if err != nil {
+			errCh <- err
+		}
+
+		qCh <- p
+	}
+}
+
+func (u WorkerUseCase) runWork(p *model.QueueModel[model.QueueModel[request.Params]]) error {
+	fmt.Printf("work param: %v", p)
+	time.Sleep(3 * time.Second)
+	return nil
 }
 
 func (t *thread) increment() {

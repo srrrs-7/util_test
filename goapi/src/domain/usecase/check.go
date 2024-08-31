@@ -29,7 +29,7 @@ func (u CheckUseCase) Check() http.HandlerFunc {
 			return
 		}
 
-		status, err := u.cache.Get(r.Context(), entity.QueueId(qid))
+		state, err := u.cache.Get(r.Context(), entity.QueueId(qid))
 		if err != nil {
 			slog.Error("get cache error", "error", err.Error())
 			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
@@ -37,7 +37,7 @@ func (u CheckUseCase) Check() http.HandlerFunc {
 			return
 		}
 
-		j, err := utilhttp.Json(response.StatusRes{Id: qid, Status: string(status.Status)})
+		j, err := utilhttp.Json(response.StatusRes{Id: qid, Status: string(state.Status)})
 		if err != nil {
 			slog.Error("response json error", "error", err.Error())
 			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
@@ -45,7 +45,7 @@ func (u CheckUseCase) Check() http.HandlerFunc {
 			return
 		}
 
-		slog.Info("check status ok", "queueId", qid, "status", status.Status)
+		slog.Info("check status ok", "queueId", qid, "status", state.Status)
 		utilhttp.ResponseOk(w, j)
 	}
 }
