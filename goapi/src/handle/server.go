@@ -44,13 +44,13 @@ func (s Server) Routing() *chi.Mux {
 func (s Server) contextUid(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uid := chi.URLParam(r, string(static.USER_ID))
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), static.USER_ID, uid)))
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), string(static.USER_ID), uid)))
 	})
 }
 
 func (s Server) contextQid(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		qid := chi.URLParam(r, string(static.QUEUE_ID))
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), static.QUEUE_ID, qid)))
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), string(static.QUEUE_ID), qid)))
 	})
 }
