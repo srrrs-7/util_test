@@ -46,6 +46,8 @@ goapi: mysql sqs rds goworker
 	docker compose up -d goapi --build
 goworker: mysql sqs rds goapi
 	docker compose up -d goworker --build
+worker-test:
+	cd ./goapi/testdata && chmod +x ./worker-test.sh && ./worker-test.sh
 gopher:
 	docker compose build gopher
 	docker compose run --rm gopher bash
