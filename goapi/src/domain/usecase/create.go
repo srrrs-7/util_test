@@ -30,7 +30,7 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 		j, err := utilhttp.Json(utilhttp.RequestBody[request.Params](r))
 		if err != nil {
 			slog.Error("request json error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseBadRequest(w, j)
 			return
 		}
@@ -38,7 +38,7 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 		qId, err := u.queue.EnQueue(r.Context(), string(j))
 		if err != nil {
 			slog.Error("enqueue error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseInternalServerError(w, j)
 			return
 		}
@@ -46,7 +46,7 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 		userId, err := utilhttp.RequestUrlParam[string](r, "userId")
 		if err != nil {
 			slog.Error("request url param error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseBadRequest(w, j)
 			return
 		}
@@ -58,7 +58,7 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 		}
 		if err = u.cache.Set(r.Context(), qId, status); err != nil {
 			slog.Error("set cache error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseInternalServerError(w, j)
 			return
 		}
@@ -66,7 +66,7 @@ func (u CreateUseCase) Create() http.HandlerFunc {
 		j, err = utilhttp.Json(response.StatusRes{Id: qId.String(), Status: string(static.PENDING)})
 		if err != nil {
 			slog.Error("response json error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseInternalServerError(w, j)
 			return
 		}

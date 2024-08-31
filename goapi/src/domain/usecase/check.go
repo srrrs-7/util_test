@@ -24,7 +24,7 @@ func (u CheckUseCase) Check() http.HandlerFunc {
 		qid, err := utilhttp.RequestUrlParam[string](r, string(static.QUEUE_ID))
 		if err != nil {
 			slog.Error("request url param error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseBadRequest(w, j)
 			return
 		}
@@ -32,7 +32,7 @@ func (u CheckUseCase) Check() http.HandlerFunc {
 		state, err := u.cache.Get(r.Context(), entity.QueueId(qid))
 		if err != nil {
 			slog.Error("get cache error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseInternalServerError(w, j)
 			return
 		}
@@ -40,7 +40,7 @@ func (u CheckUseCase) Check() http.HandlerFunc {
 		j, err := utilhttp.Json(response.StatusRes{Id: qid, Status: string(state.Status)})
 		if err != nil {
 			slog.Error("response json error", "error", err.Error())
-			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})
+			j, _ := utilhttp.Json(response.ErrorRes{Err: err.Error()})
 			utilhttp.ResponseInternalServerError(w, j)
 			return
 		}
