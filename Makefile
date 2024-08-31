@@ -23,9 +23,12 @@ psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test -f /postgres/init/init.sql
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
 
-.PHONY: elasticsearch
-elasticsearch:
+.PHONY: elasticsearch kibana
+elasticsearch: kibana
 	docker compose up -d elasticsearch --build
+	cd ./elasticsearch && chmod +x ./init.sh && ./init.sh
+kibana:
+	docker compose up -d kibana --build
 
 .PHONY: sqs send receive 
 SQS_ENDPOINT="http://sqs:9324"

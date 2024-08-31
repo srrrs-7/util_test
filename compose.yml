@@ -63,13 +63,24 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
     environment:
-      - discovery.type=single-node # 単一ノードクラスタとして設定
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m # JVM のヒープサイズを設定
+      node.name: elasticsearch
+      discovery.type: single-node
+      cluster.name: es-docker-cluster
+      ES_JAVA_OPTS: -Xms4096m -Xmx4096m
+      xpack.security.enabled: false
+      http.port: 9200
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - ./elasticsearch/data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.1.0
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
 
   sqs:
     image: softwaremill/elasticmq
