@@ -79,6 +79,9 @@ services:
       CACHE_TTL: 3600
       CACHE_PREFIX: GOAPI
       SQS_URL: http://sqs:9324/000000000000/test
+      AWS_ACCESS_KEY_ID: access # local env
+      AWS_SECRET_ACCESS_KEY: secret # local env
+      DEFAULT_REGION: region # local env
 
   goworker:
     build:
@@ -91,6 +94,9 @@ services:
       CACHE_TTL: 3600
       CACHE_PREFIX: GOAPI
       SQS_URL: http://sqs:9324/000000000000/test
+      AWS_ACCESS_KEY_ID: access # local env
+      AWS_SECRET_ACCESS_KEY: secret # local env
+      DEFAULT_REGION: region # local env
 
   gopher:
     image: golang:1.23.0
