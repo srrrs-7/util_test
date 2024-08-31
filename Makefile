@@ -23,6 +23,10 @@ psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test -f /postgres/init/init.sql
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
 
+.PHONY: elasticsearch
+elasticsearch:
+	docker compose up -d elasticsearch --build
+
 .PHONY: sqs send receive 
 SQS_ENDPOINT="http://sqs:9324"
 QUEUE_URL="http://sqs:9324/000000000000/test"
