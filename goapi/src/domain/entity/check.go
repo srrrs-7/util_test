@@ -14,8 +14,8 @@ type CheckStatusEnt struct {
 	Status Status  `json:"status"`
 }
 
-func (s Status) State() Status {
-	switch s {
+func (s Status) State() static.Status {
+	switch static.Status(s) {
 	case static.PENDING:
 		return static.PENDING
 	case static.DONE:
@@ -25,6 +25,6 @@ func (s Status) State() Status {
 	case static.RUNNING:
 		return static.RUNNING
 	default:
-		return Status(fmt.Sprintf("invalid status: %s", s))
+		return static.Status(fmt.Sprintf("invalid status: %s", s))
 	}
 }

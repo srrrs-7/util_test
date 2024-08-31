@@ -1,14 +1,14 @@
 package static
 
+type Path string
+
 const (
-	HEALTH_PATH   = "/health"
-	DOMAIN_PATH   = "/domain/v1"
-	USER_ID_PATH  = "/user/{userId}"
-	QUEUE_ID_PATH = "/queue/{queueId}"
-
-	CREATE_PATH = "/create"
-	STATUS_PATH = "/status"
-
-	USER_ID  = "userId"
-	QUEUE_ID = "queueId"
+	HEALTH_PATH   Path = "/health"
+	DOMAIN_PATH   Path = "/domain/v1"
+	USER_ID_PATH  Path = "/user/{userId}"
+	QUEUE_ID_PATH Path = "/queue/{queueId}"
+	CREATE_PATH   Path = "/create"
+	STATUS_PATH   Path = "/status"
+	USER_ID       Path = "userId"
+	QUEUE_ID      Path = "queueId"
 )

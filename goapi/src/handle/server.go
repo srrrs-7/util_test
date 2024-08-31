@@ -23,17 +23,17 @@ func (s Server) Routing() *chi.Mux {
 
 	r.Use(r.Middlewares()...)
 
-	r.Get(static.HEALTH_PATH, func(w http.ResponseWriter, r *http.Request) {})
+	r.Get(string(static.HEALTH_PATH), func(w http.ResponseWriter, r *http.Request) {})
 
-	r.Route(static.DOMAIN_PATH, func(r chi.Router) {
+	r.Route(string(static.DOMAIN_PATH), func(r chi.Router) {
 
-		r.Route(static.USER_ID_PATH, func(r chi.Router) {
+		r.Route(string(static.USER_ID_PATH), func(r chi.Router) {
 			r.Use(s.contextUid)
-			r.Post(static.CREATE_PATH, s.creator.Create())
+			r.Post(string(static.CREATE_PATH), s.creator.Create())
 
-			r.Route(static.QUEUE_ID_PATH, func(r chi.Router) {
+			r.Route(string(static.QUEUE_ID_PATH), func(r chi.Router) {
 				r.Use(s.contextQid)
-				r.Get(static.STATUS_PATH, s.checker.Check())
+				r.Get(string(static.STATUS_PATH), s.checker.Check())
 			})
 		})
 	})

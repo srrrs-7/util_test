@@ -21,7 +21,7 @@ func NewCheckUseCase(cache domain.Cacher[entity.CheckStatusEnt]) CheckUseCase {
 // API request -> get status -> API response
 func (u CheckUseCase) Check() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qid, err := utilhttp.RequestUrlParam[string](r, static.QUEUE_ID)
+		qid, err := utilhttp.RequestUrlParam[string](r, string(static.QUEUE_ID))
 		if err != nil {
 			slog.Error("request url param error", "error", err.Error())
 			j, _ := utilhttp.Json(response.ErrorRes{Msg: err.Error()})

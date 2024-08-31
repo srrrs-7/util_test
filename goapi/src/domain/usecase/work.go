@@ -85,7 +85,7 @@ func (u *WorkerUseCase) concurrencyWork(ctx context.Context, p *model.QueueModel
 	}
 
 	if err := u.runWork(p); err != nil {
-		status.Status = static.ERROR
+		status.Status = entity.Status(static.ERROR)
 		if err := u.cache.Set(ctx, p.Entity().Id, status); err != nil {
 			slog.Error("concurrency work set status error", "error", err.Error())
 			return
@@ -94,7 +94,7 @@ func (u *WorkerUseCase) concurrencyWork(ctx context.Context, p *model.QueueModel
 		return
 	}
 
-	status.Status = static.DONE
+	status.Status = entity.Status(static.DONE)
 	if err := u.cache.Set(ctx, p.Entity().Id, status); err != nil {
 		slog.Error("concurrency work set status error", "error", err.Error())
 		return
