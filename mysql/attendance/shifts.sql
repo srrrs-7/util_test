@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS shifts (
     start_time  TIME NOT NULL COMMENT 'shift start time',
     end_time    TIME NOT NULL COMMENT 'shift end time',
     deemed_flag TINYINT NOT NULL DEFAULT 0 COMMENT 'みなし勤務シフト 0:normal shift, 1:deemed shift'
-    shift_memo  VARCHAR DEFAULT "" COMMENT 'シフト備考',
+    shift_memo  VARCHAR(255) DEFAULT "" COMMENT 'シフト備考',
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES companies(id),
