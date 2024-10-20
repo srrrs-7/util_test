@@ -1,0 +1,43 @@
+openapi: 3.1.0
+info:
+  title: 従業員API
+  version: v1.0.0
+paths:
+  /employees:
+    get:
+      summary: 従業員一覧を取得
+      responses:
+        '200':
+          description: 従業員一覧
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Employee'
+    post:
+      summary: 従業員を作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+      responses:
+        '201':
+          description: 作成された従業員
+components:
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: 従業員ID
+        name:
+          type: string
+          description: 氏名
+        department_id:
+          type: integer
+          description: 所属部門ID

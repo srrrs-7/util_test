@@ -90,7 +90,16 @@ observer:
 vector:
 	docker compose exec vector vector top
 
-.PHONY: redoc
-redoc:
-	docker compose up -d redoc --build
-	sleep 10 && cd redoc && open index.html
+.PHONY: master-doc stamp-doc
+master-doc:
+	docker compose run --rm redoc npx @redocly/cli build-docs /app/master.yaml --output /app/doc/master.html
+stamp-doc:
+	docker compose run --rm redoc npx @redocly/cli build-docs /app/stamp.yaml --output /app/doc/stamp.html
+shift-doc:
+	docker compose run --rm redoc npx @redocly/cli build-docs /app/shift.yaml --output /app/doc/shift.html
+holiday-doc:
+	docker compose run --rm redoc npx @redocly/cli build-docs /app/holiday.yaml --output /app/doc/holiday.html
+attendance-doc:
+	docker compose run --rm redoc npx @redocly/cli build-docs /app/attendance.yaml --output /app/doc/attendance.html
+audit-doc:
+	docker compose run --rm redoc npx @redocly/cli build-docs /app/audit.yaml --output /app/doc/audit.html
