@@ -10,3 +10,5 @@ Cargo.lock
 
 data.txt
 data
+
+./redoc/index.html
