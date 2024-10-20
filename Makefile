@@ -89,3 +89,7 @@ observer:
 	docker compose up -d prometheus grafana tempo loki otel-collector jaeger vector --build
 vector:
 	docker compose exec vector vector top
+
+.PHONY: redoc
+redoc:
+	docker compose up -d redoc --build

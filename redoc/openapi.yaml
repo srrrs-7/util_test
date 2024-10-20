@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Attendance API Documentation
+  version: v1.0.0
+paths:
+  /master:
+    $ref: './master.yaml'
+  /stamp:
+    $ref: './stamp.yaml'
+  /shift:
+    $ref: './shift.yaml'
+  /holiday:
+    $ref: './holiday.yaml'
+  /attendance_aggregation:
+    $ref: './attendance_aggregation.yaml'
+  /audit:
+    $ref: './audit.yaml'
