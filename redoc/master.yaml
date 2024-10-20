@@ -1,43 +1,335 @@
 openapi: 3.1.0
 info:
-  title: 従業員API
+  title: master API
   version: v1.0.0
+
+# tags
+tags:
+  - name: company
+    description: company API
+  - name: staff
+    description: staff API
+  - name: group
+    description: group API
+  - name: work type
+    description: work type API
+  - name: wage
+    description: wage API
+
+# path
 paths:
-  /employees:
+  ###### company API document ######
+  /company/{company_id}:
     get:
-      summary: 従業員一覧を取得
+      tags:
+        - company
+      summary: get company
       responses:
         '200':
-          description: 従業員一覧
+          description: get company
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Employee'
+                  $ref: '#/components/schemas/Company'
+    put:
+      tags:
+        - company
+      summary: update compoany
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+      responses:
+        '200':
+          description: updated company info
+  /company:
     post:
-      summary: 従業員を作成
+      tags:
+        - company
+      summary: create compoany
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+      responses:
+        '201':
+          description: created company info
+    
+  ###### staff API document ######
+  /staff/{staff_id}:
+    get:
+      tags:
+        - staff
+      summary: get staff
+      responses:
+        '200':
+          description: get staff
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Staff'
+    put:
+      tags:
+        - staff
+      summary: update staff
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Employee'
+              $ref: '#/components/schemas/Staff'
+      responses:
+        '200':
+          description: updated staff info
+  /staffs:
+    get:
+      tags:
+        - staff
+      summary: get all staffs
+      responses:
+        '200':
+          description: get all staffs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Staff'
+  /staff:
+    post:
+      tags:
+        - staff
+      summary: create staff
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Staff'
       responses:
         '201':
-          description: 作成された従業員
+          description: created staff info
+  
+  ###### group API document ######
+  /group/{group_id}:
+    get:
+      tags:
+        - group
+      summary: get all groups
+      responses:
+        '200':
+          description: get all groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+    put:
+      tags:
+        - group
+      summary: create group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        '200':
+          description: created group info
+  /groups:
+    get:
+      tags:
+        - group
+      summary: get all groups
+      responses:
+        '200':
+          description: get all groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+  /group:
+    post:
+      tags:
+        - group
+      summary: create group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        '201':
+          description: created group info
+  
+  ###### work type API document ######
+  /worktype/{work_type_id}:
+    get:
+      tags:
+        - work type
+      summary: get work type
+      responses:
+        '200':
+          description: get all work type
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkType'
+    put:
+      tags:
+        - work type
+      summary: update work type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkType'
+      responses:
+        '200':
+          description: created work type info
+  /worktypes:
+    get:
+      tags:
+        - work type
+      summary: get all work types
+      responses:
+        '200':
+          description: get all work types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkType'
+  /worktype:
+    post:
+      tags:
+        - work type
+      summary: create work type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkType'
+      responses:
+        '201':
+          description: updated work type info
+
+  ###### wage API document ######
+  /wage/{company_id}:
+    get:
+      tags:
+        - wage
+      summary: get wage
+      responses:
+        '200':
+          description: get wage info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Wage'
+    put:
+      tags:
+        - wage
+      summary: update wage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wage'
+      responses:
+        '200':
+          description: created wage info
+  /wage:
+    post:
+      tags:
+        - wage
+      summary: create wage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wage'
+      responses:
+        '201':
+          description: created wage info
+
+# schema  
 components:
   schemas:
-    Employee:
+    # company schema
+    Company:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-          description: 従業員ID
+          description: company ID
         name:
           type: string
-          description: 氏名
-        department_id:
+          description: company name
+
+    # staff schema
+    Staff:
+      type: object
+      properties:
+        id:
           type: integer
-          description: 所属部門ID
+          readOnly: true
+          description: company ID
+        name:
+          type: string
+          description: company name
+
+    # group schema
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: group ID
+        name:
+          type: string
+          description: group name
+
+    # work type schema
+    WorkType:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: work type ID
+        name:
+          type: string
+          description: work type name
+    
+    # wage schema
+    Wage:
+      type: object
+      properties:
+        name:
+          type: string
+          description: work type name
