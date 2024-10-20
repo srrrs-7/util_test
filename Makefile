@@ -90,7 +90,7 @@ observer:
 vector:
 	docker compose exec vector vector top
 
-.PHONY: master-doc stamp-doc
+.PHONY: master-doc stamp-doc shift-doc holiday-doc attendance-doc audit-doc
 master-doc:
 	docker compose run --rm redoc npx @redocly/cli build-docs /app/master.yaml --output /app/doc/master.html
 stamp-doc:
