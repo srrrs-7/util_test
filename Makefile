@@ -93,3 +93,4 @@ vector:
 .PHONY: redoc
 redoc:
 	docker compose up -d redoc --build
+	cd redoc && open index.html

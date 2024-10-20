@@ -242,16 +242,9 @@ services:
       AWS_SECRET_ACCESS_KEY: aws_secret_access_key
 
   redoc:
-    image: redocly/redoc:latest
+    build:
+      dockerfile: ./.images/redoc.Dockerfile
     ports:
       - 80:80
-    environment:
-      - SPEC_URL=http://localhost/openapi.yaml
     volumes:
-      - ./redoc/openapi.yaml:/usr/share/nginx/html/openapi.yaml
-      - ./redoc/master.yaml:/usr/share/nginx/html/master.yaml
-      - ./redoc/stamp.yaml:/usr/share/nginx/html/stamp.yaml
-      - ./redoc/shift.yaml:/usr/share/nginx/html/shift.yaml
-      - ./redoc/holiday.yaml:/usr/share/nginx/html/holiday.yaml
-      - ./redoc/attendance_aggregation.yaml:/usr/share/nginx/html/attendance_aggregation.yaml
-      - ./redoc/audit.yaml:/usr/share/nginx/html/audit.yaml
+      - ./redoc:/app
