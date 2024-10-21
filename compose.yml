@@ -41,7 +41,7 @@ services:
       POSTGRES_DB: test
     restart: always
     volumes:
-      - ./postgres/init/init.sql:/postgres/init/init.sql
+      - ./postgres/init:/postgres/init
 
   rds:
     image: redis:latest
@@ -51,7 +51,7 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - 27017:27017
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
@@ -59,6 +59,55 @@ services:
     volumes:
       - ./mongo/data:/data/db
       - ./mongo/init:/mongo/init
+
+  redash:
+    image: redash/redash:latest
+    platform: linux/amd64
+    restart: always
+    ports:
+      - 5005:5000
+    depends_on:
+      - redash-pg
+      - rds
+    environment:
+      REDASH_DATABASE_URL: postgresql://root:root@redash-pg:5432/redash
+      REDASH_REDIS_URL: redis://rds:6379
+      REDASH_COOKIE_SECRET: secret
+      REDASH_SECRET_KEY: secret
+  redash-scheduler:
+    image: redash/redash:latest
+    platform: linux/amd64
+    command: scheduler
+    depends_on:
+      - redash
+    environment:
+      REDASH_DATABASE_URL: postgresql://root:root@redash-pg:5432/redash
+      REDASH_REDIS_URL: redis://rds:6379
+      QUEUES: "celery"
+      WORKERS_COUNT: 1
+  redash-worker:
+    image: redash/redash:latest
+    platform: linux/amd64
+    command: worker
+    depends_on:
+      - redash
+    environment:
+      REDASH_DATABASE_URL: postgresql://root:root@redash-pg:5432/redash
+      REDASH_REDIS_URL: redis://rds:6379
+      QUEUES: "celery"
+      WORKERS_COUNT: 1
+  redash-pg:
+    build:
+      dockerfile: ./.images/pg.Dockerfile
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: redash
+    restart: always
+    volumes:
+      - ./postgres/init:/postgres/init
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2

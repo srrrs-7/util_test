@@ -16,12 +16,14 @@ dump:
 	docker compose exec mysql mysqldump -u root -p test > ./database/dump/dump.sql
 	gzip ./database/dump/dump.sql
 
-.PHONY: postgres psql
+.PHONY: postgres psql redash
 postgres:
 	docker compose up -d postgres --build
-psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test -f /postgres/init/init.sql
+psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
+redash: rds
+	docker compose up -d redash redash-pg redash-scheduler redash-worker --build
 
 .PHONY: elasticsearch kibana
 elasticsearch: kibana
