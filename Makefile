@@ -24,6 +24,7 @@ psql:
 	docker compose exec postgres psql -h localhost -p 5432 -U root -d test
 redash: rds
 	docker compose up -d redash redash-pg redash-scheduler redash-worker --build
+	docker compose run --rm redash create_db
 
 .PHONY: elasticsearch kibana
 elasticsearch: kibana

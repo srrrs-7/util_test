@@ -77,24 +77,22 @@ services:
   redash-scheduler:
     image: redash/redash:latest
     platform: linux/amd64
-    command: scheduler
     depends_on:
       - redash
     environment:
       REDASH_DATABASE_URL: postgresql://root:root@redash-pg:5432/redash
       REDASH_REDIS_URL: redis://rds:6379
-      QUEUES: "celery"
+      QUEUES: celery
       WORKERS_COUNT: 1
   redash-worker:
     image: redash/redash:latest
     platform: linux/amd64
-    command: worker
     depends_on:
       - redash
     environment:
       REDASH_DATABASE_URL: postgresql://root:root@redash-pg:5432/redash
       REDASH_REDIS_URL: redis://rds:6379
-      QUEUES: "celery"
+      QUEUES: celery
       WORKERS_COUNT: 1
   redash-pg:
     build:
