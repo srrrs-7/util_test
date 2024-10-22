@@ -103,6 +103,6 @@ shift-doc:
 holiday-doc:
 	docker compose run --rm redoc npx @redocly/cli build-docs /app/holiday.yaml --output /app/doc/holiday.html
 attendance-doc:
-	docker compose run --rm redoc npx @redocly/cli build-docs /app/attendance.yaml --output /app/doc/attendance.html
+	docker compose run --rm redoc npx @redocly/cli build-docs /app/aggregation.yaml --output /app/doc/aggregation.html
 audit-doc:
 	docker compose run --rm redoc npx @redocly/cli build-docs /app/audit.yaml --output /app/doc/audit.html
