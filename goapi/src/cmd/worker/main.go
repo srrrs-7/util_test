@@ -44,6 +44,7 @@ func main() {
 	repository.NewDbRepo[model.User](db)
 
 	usecase.NewWorkerUseCase(
+		&sync.Cond{},
 		&sync.Mutex{},
 		repository.NewQueueRepo[model.QueueModel[request.Params]](queue, env.SQS_URL),
 		repository.NewCacheRepo[entity.CheckStatusEnt](cache, env.CACHE_TTL, env.CACHE_PREFIX),

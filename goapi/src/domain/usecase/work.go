@@ -10,12 +10,12 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
-	"time"
 )
 
 type thread struct {
-	mu  *sync.Mutex
-	cnt int
+	cond *sync.Cond
+	mu   *sync.Mutex
+	cnt  int
 }
 
 type WorkerUseCase struct {
@@ -25,6 +25,7 @@ type WorkerUseCase struct {
 }
 
 func NewWorkerUseCase(
+	cond *sync.Cond,
 	m *sync.Mutex,
 	q domain.Queuer[model.QueueModel[request.Params]],
 	c domain.Cacher[entity.CheckStatusEnt],
@@ -33,8 +34,9 @@ func NewWorkerUseCase(
 		queue: q,
 		cache: c,
 		thread: &thread{
-			mu:  m,
-			cnt: 0,
+			cond: cond,
+			mu:   m,
+			cnt:  0,
 		},
 	}
 }
@@ -43,26 +45,16 @@ func NewWorkerUseCase(
 func (u *WorkerUseCase) Work(ctx context.Context) {
 	qCh := make(chan *model.QueueModel[model.QueueModel[request.Params]])
 	errCh := make(chan error)
-	timer := time.NewTicker(1 * time.Second)
 
 	defer func() {
 		close(qCh)
 		close(errCh)
-		timer.Stop()
 	}()
 
 	go u.receiveQueue(ctx, qCh, errCh)
 
 	for {
-		if u.thread.cnt >= static.MAX_THREAD_CNT {
-			slog.Info("max thread cnt reached", "count", u.thread.cnt)
-			time.Sleep(1 * time.Second)
-			continue
-		}
-
 		select {
-		case <-timer.C:
-			slog.Info("ticker", "thread count", u.thread.cnt)
 		case <-ctx.Done():
 			slog.Info("context done")
 		case err := <-errCh:
@@ -118,7 +110,6 @@ func (u WorkerUseCase) receiveQueue(ctx context.Context, qCh chan<- *model.Queue
 
 func (u WorkerUseCase) runWork(p *model.QueueModel[model.QueueModel[request.Params]]) error {
 	fmt.Printf("work param: %v", p)
-	time.Sleep(3 * time.Second)
 	return nil
 }
 
@@ -126,6 +117,10 @@ func (t *thread) increment() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.cnt++
+	if t.cnt >= static.MAX_THREAD_CNT {
+		t.cond.Wait()
+	}
+	t.cond.Broadcast()
 }
 
 func (t *thread) decrement() {
