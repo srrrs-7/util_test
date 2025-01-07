@@ -177,9 +177,9 @@ services:
   rust:
     image: rust:latest
     platform: linux/arm64
-    working_dir: /rust
     volumes:
       - ./rust:/rust
+      - ./wasm:/wasm
 
   node:
     image: node:latest
@@ -188,14 +188,12 @@ services:
       - ./node:/node
 
   deno:
-    build:
-      dockerfile: ./.images/deno.Dockerfile
-    working_dir: /deno
+    image: denoland/deno:latest
     volumes:
       - ./deno:/deno
+      - ./wasm:/wasm
     ports:
       - 4507:4507
-    command: sh -c "cd deno-svelte && deno task build && deno task serve"
 
   bun:
     build:

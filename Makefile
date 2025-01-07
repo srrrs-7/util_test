@@ -68,7 +68,6 @@ node:
 	docker compose build node
 	docker compose run --rm node bash
 deno:
-	docker compose build deno
 	docker compose run --rm deno bash
 deno-vite:
 	docker compose run --rm deno deno run -A npm:create-vite-extra@latest
