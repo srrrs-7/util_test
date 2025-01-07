@@ -213,7 +213,7 @@ services:
     image: ubuntu:latest
 
   k6:
-    image: grafana/k6
+    image: grafana/k6:master-with-browser
     volumes:
       - ./k6:/k6
 

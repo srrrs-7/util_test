@@ -83,7 +83,7 @@ linux:
 	docker compose build linux
 	docker compose run --rm linux bash
 k6:
-	docker compose run --rm k6 run --vus 10 --duration 5s /k6/script.js
+	docker compose run --rm k6 run /k6/scenario/scenario1/script.js --out json=/k6/log/out.json
 plantuml:
 	docker compose up -d plantuml
 
