@@ -45,7 +45,7 @@ enqueue:
 dequeue:
 	docker compose run --rm aws sqs receive-message --endpoint-url=$(SQS_ENDPOINT) --queue-url=${QUEUE_URL}
 
-.PHONY: rds mongo goapi goworker gopher rust node deno bun php linux k3s k6 plantuml
+.PHONY: rds mongo goapi goworker gopher rust node deno bun php linux k6 plantuml
 rds:
 	docker compose up -d rds --build
 mongo:
@@ -81,8 +81,6 @@ php:
 linux:
 	docker compose build linux
 	docker compose run --rm linux bash
-k3s:
-	docker compose up -d k3s
 k6:
 	docker compose run --rm k6 run /k6/scenario/scenario1/script.js --out json=/k6/log/out.json
 plantuml:
@@ -109,3 +107,9 @@ attendance-doc:
 	docker compose run --rm redoc npx @redocly/cli build-docs /app/aggregation.yaml --output /app/doc/aggregation.html
 audit-doc:
 	docker compose run --rm redoc npx @redocly/cli build-docs /app/audit.yaml --output /app/doc/audit.html
+
+.PHONY: k3s k3s-mysql
+k3s:
+	docker compose up -d k3s
+k3s-mysql:
+	docker compose exec k3s kubectl apply -f /k3s/mysql.yaml
