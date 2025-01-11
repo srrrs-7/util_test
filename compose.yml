@@ -210,6 +210,16 @@ services:
   linux:
     image: ubuntu:latest
 
+  k3s:
+    image: rancher/k3s
+    command:
+      - server
+      - token create
+    volumes:
+      - ./k3s:/k3s
+      - ./k3s/rancher/k3s.yaml:/etc/rancher/k3s/k3s.yaml
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+
   k6:
     image: grafana/k6:master-with-browser
     volumes:
