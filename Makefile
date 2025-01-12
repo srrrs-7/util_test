@@ -108,8 +108,20 @@ attendance-doc:
 audit-doc:
 	docker compose run --rm redoc npx @redocly/cli build-docs /app/audit.yaml --output /app/doc/audit.html
 
-.PHONY: k3s k3s-mysql
+.PHONY: k3s k3s-get-pods k3s-describe-pod k3s-mysql k3s-mysql-conn k3s-postgres k3s-postgres-conn
 k3s:
 	docker compose up -d k3s
+k3s-get-pods:
+	docker compose exec k3s kubectl get pods
+k3s-describe-pod:
+	docker compose exec k3s kubectl describe pod mysql
+k3s-delete-pod:
+	docker compose exec k3s kubectl delete pod mysql-6b74c86875-n4mdp
 k3s-mysql:
 	docker compose exec k3s kubectl apply -f /k3s/mysql.yaml
+k3s-mysql-conn:
+	docker compose exec k3s kubectl exec -it mysql -c mysql -- mysql -u root -p"password"
+k3s-postgres:
+	docker compose exec k3s kubectl apply -f /k3s/postgres.yaml
+k3s-postgres-conn:
+	docker compose exec k3s kubectl exec -it postgres -c mysql -- mysql -u root -p"password"
