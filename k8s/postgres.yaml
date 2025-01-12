@@ -1,31 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql
+  name: postgresql
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql
+      app: postgresql
   template:
     metadata:
       labels:
-        app: mysql
+        app: postgresql
     spec:
       containers:
-      - name: mysql
-        image: mysql:8.0  # バージョンを指定
+      - name: postgresql
+        image: postgres:15  # バージョンを指定
         env:
-        - name: MYSQL_ROOT_PASSWORD
+        - name: POSTGRES_PASSWORD
           valueFrom:  # Secret からパスワードを取得
             secretKeyRef:
-              name: mysql-secret
+              name: postgresql-secret
               key: password
         ports:
-        - containerPort: 3306
+        - containerPort: 5432
         volumeMounts:
-        - name: mysql-persistent-storage
-          mountPath: /var/lib/mysql
+        - name: postgresql-persistent-storage
+          mountPath: /var/lib/postgresql/data
         resources:
           requests:
             cpu: 200m  # 必要に応じて調整
@@ -34,18 +34,18 @@ spec:
             cpu: 1000m  # 必要に応じて調整
             memory: 1Gi  # 必要に応じて調整
       volumes:
-      - name: mysql-persistent-storage
+      - name: postgresql-persistent-storage
         persistentVolumeClaim:
-          claimName: mysql-pvc
+          claimName: postgresql-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql
+  name: postgresql
 spec:
   selector:
-    app: mysql
+    app: postgresql
   ports:
   - protocol: TCP
-    port: 3306
-    targetPort: 3306
+    port: 5432
+    targetPort: 5432

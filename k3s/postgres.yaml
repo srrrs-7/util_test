@@ -14,10 +14,13 @@ spec:
     spec:
       containers:
       - name: postgresql
-        image: postgres:latest
+        image: postgres:15  # バージョンを指定
         env:
         - name: POSTGRES_PASSWORD
-          value: "password"
+          valueFrom:  # Secret からパスワードを取得
+            secretKeyRef:
+              name: postgresql-secret
+              key: password
         ports:
         - containerPort: 5432
         volumeMounts:
@@ -25,12 +28,32 @@ spec:
           mountPath: /var/lib/postgresql/data
         resources:
           requests:
-            cpu: 100m
-            memory: 256Mi
+            cpu: 200m  # 必要に応じて調整
+            memory: 512Mi  # 必要に応じて調整
           limits:
-            cpu: 500m
-            memory: 512Mi
+            cpu: 1000m  # 必要に応じて調整
+            memory: 1Gi  # 必要に応じて調整
       volumes:
       - name: postgresql-persistent-storage
         persistentVolumeClaim:
           claimName: postgresql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+spec:
+  selector:
+    app: postgresql
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgresql-secret
+type: Opaque
+data:
+  password: <base64 encoded password>  # パスワードを Base64 エンコードして設定

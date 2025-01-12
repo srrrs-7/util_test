@@ -125,3 +125,15 @@ k3s-postgres:
 	docker compose exec k3s kubectl apply -f /k3s/postgres.yaml
 k3s-postgres-conn:
 	docker compose exec k3s kubectl exec -it postgres -c mysql -- mysql -u root -p"password"
+
+.PHONY: k8s-get-pods k8s-nginx k8s-mysql k8s-postgres k8s-delete-pod
+k8s-get-pods:
+	kubectl get pods
+k8s-nginx:
+	kubectl run nginx --image nginx:latest
+k8s-mysql:
+	kubectl apply -f ./k8s/mysql.yaml
+k8s-postgres:
+	kubectl apply -f ./k8s/postgres.yaml
+k8s-delete-pod:
+	kubectl delete pod nginx
