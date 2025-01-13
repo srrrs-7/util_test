@@ -156,3 +156,7 @@ k8s-del-postgres:
 	kubectl delete service postgresql
 	kubectl delete pvc postgres-pvc
 	kubectl delete pv postgres-pv
+
+.PHONY: orb-ssh
+orb-ssh:
+	ssh orb

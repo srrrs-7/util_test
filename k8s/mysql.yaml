@@ -81,7 +81,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
-    path: /mnt/mac
+    path: /mnt/mac/Users/srrrs/App/test/k8s/data # ssh orb -> cd /mnt/mac/Users/srrrs/App/test/k8s/data
   nodeAffinity:
     required:
       nodeSelectorTerms:
