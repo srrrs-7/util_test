@@ -112,11 +112,13 @@ audit-doc:
 k3s:
 	docker compose up -d k3s
 k3s-get-pods:
-	docker compose exec k3s kubectl get pods
+	docker compose exec k3s kubectl get svc,sts,po 
 k3s-describe-pod:
 	docker compose exec k3s kubectl describe pod mysql
 k3s-delete-pod:
-	docker compose exec k3s kubectl delete pod mysql-6b74c86875-n4mdp
+	docker compose exec k3s kubectl delete pod ${POD}
+k3s-delete-all:
+	docker compose exec k3s kubectl get pods | awk '{print $1}' | grep -v NAME | xargs kubectl delete pods
 k3s-mysql:
 	docker compose exec k3s kubectl apply -f /k3s/mysql.yaml
 k3s-mysql-conn:
@@ -126,14 +128,31 @@ k3s-postgres:
 k3s-postgres-conn:
 	docker compose exec k3s kubectl exec -it postgres -c mysql -- mysql -u root -p"password"
 
-.PHONY: k8s-get-pods k8s-nginx k8s-mysql k8s-postgres k8s-delete-pod
+.PHONY: k8s-get-pods k8s-del-pod k8s-nginx k8s-mysql k8s-del-mysql k8s-postgres k8s-del-postgres
 k8s-get-pods:
-	kubectl get pods
+	kubectl get svc,sts,po 
+k8s-del-pod:
+	kubectl delete pods ${POD}
 k8s-nginx:
 	kubectl run nginx --image nginx:latest
+	kubectl expose pod nginx --type=NodePort --port=80
 k8s-mysql:
 	kubectl apply -f ./k8s/mysql.yaml
+	kubectl get pvc
+	kubectl get pv
+	kubectl get pods | grep mysql | awk '{print $$1}' | xargs kubectl describe pod
+k8s-del-mysql:
+	kubectl delete deployments mysql
+	kubectl delete service mysql
+	kubectl delete pvc mysql-pvc
+	kubectl delete pv mysql-pv
 k8s-postgres:
 	kubectl apply -f ./k8s/postgres.yaml
-k8s-delete-pod:
-	kubectl delete pod nginx
+	kubectl get pvc
+	kubectl get pv
+	kubectl get pods | grep postgres | awk '{print $$1}' | xargs kubectl describe pod
+k8s-del-postgres:
+	kubectl delete deployments postgresql
+	kubectl delete service postgresql
+	kubectl delete pvc postgres-pvc
+	kubectl delete pv postgres-pv

@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
+  labels:
+    app: mysql
+    env: production
 spec:
   replicas: 1
   selector:
@@ -11,16 +14,17 @@ spec:
     metadata:
       labels:
         app: mysql
+        env: production
     spec:
       containers:
       - name: mysql
-        image: mysql:8.0  # バージョンを指定
+        image: mysql:latest
         env:
         - name: MYSQL_ROOT_PASSWORD
-          valueFrom:  # Secret からパスワードを取得
+          valueFrom:
             secretKeyRef:
               name: mysql-secret
-              key: password
+              key: root-password
         ports:
         - containerPort: 3306
         volumeMounts:
@@ -28,11 +32,11 @@ spec:
           mountPath: /var/lib/mysql
         resources:
           requests:
-            cpu: 200m  # 必要に応じて調整
-            memory: 512Mi  # 必要に応じて調整
+            cpu: 500m
+            memory: 1Gi
           limits:
-            cpu: 1000m  # 必要に応じて調整
-            memory: 1Gi  # 必要に応じて調整
+            cpu: 1000m
+            memory: 2Gi
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
@@ -42,10 +46,62 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql
+  labels:
+    app: mysql
+    env: production
 spec:
   selector:
-    app: mysql
+      app: mysql
   ports:
   - protocol: TCP
     port: 3306
     targetPort: 3306
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-storage
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /mnt/mac
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - orbstack
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+type: Opaque
+data:
+  root-password: cm9vdA==

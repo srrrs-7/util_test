@@ -14,10 +14,10 @@ spec:
     spec:
       containers:
       - name: postgresql
-        image: postgres:15  # バージョンを指定
+        image: postgres:latest
         env:
         - name: POSTGRES_PASSWORD
-          valueFrom:  # Secret からパスワードを取得
+          valueFrom:
             secretKeyRef:
               name: postgresql-secret
               key: password
