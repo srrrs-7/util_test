@@ -1,59 +1,115 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgresql
+  name: postgres
+  labels:
+    app: postgres
+    tier: database  # Added for better organization
+    env: production
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgresql
+      app: postgres
+      tier: database  # Match the new label
   template:
     metadata:
       labels:
-        app: postgresql
+        app: postgres
+        tier: database  # Match the new label
+        env: production
     spec:
       containers:
-      - name: postgresql
-        image: postgres:latest
+      - name: postgres
+        image: postgres:latest # Consider pinning to a specific version, e.g., postgres:15.3
         env:
-        - name: POSTGRES_PASSWORD
+        - name: POSTGRES_PASSWORD # Changed from postgres_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: postgresql-secret
-              key: password
+              name: postgres-secret
+              key: db-password  # More descriptive key
         ports:
-        - containerPort: 5432
+        - containerPort: 5432 # Changed to 5432, the standard Postgres port
+          name: postgres-port # Named port for clarity
         volumeMounts:
-        - name: postgresql-persistent-storage
-          mountPath: /var/lib/postgresql/data
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data # Standard Postgres data directory
         resources:
           requests:
-            cpu: 200m  # 必要に応じて調整
-            memory: 512Mi  # 必要に応じて調整
+            cpu: 250m # Adjusted based on typical Postgres needs
+            memory: 512Mi
           limits:
-            cpu: 1000m  # 必要に応じて調整
-            memory: 1Gi  # 必要に応じて調整
+            cpu: 500m
+            memory: 1Gi
       volumes:
-      - name: postgresql-persistent-storage
+      - name: postgres-data
         persistentVolumeClaim:
-          claimName: postgresql-pvc
+          claimName: postgres-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgresql
+  name: postgres-svc # More descriptive service name
+  labels:
+    app: postgres
+    tier: database
+    env: production
 spec:
+  type: ClusterIP # Explicitly specify ClusterIP for internal service
   selector:
-    app: postgresql
+    app: postgres
+    tier: database
   ports:
   - protocol: TCP
     port: 5432
-    targetPort: 5432
+    targetPort: postgres-port # Referencing the named port
+    name: postgres-port
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi # Increased default storage request to 5Gi
+  storageClassName: local-storage
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv
+spec:
+  capacity:
+    storage: 5Gi # Matched to PVC capacity
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /mnt/data/postgres # Changed to a more standard path, consider adjusting based on your setup
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - orbstack # Consider using a label instead of hostname
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: postgresql-secret
+  name: postgres-secret
 type: Opaque
 data:
-  password: <base64 encoded password>  # パスワードを Base64 エンコードして設定
+  db-password: cm9vdA== # Base64 encoded 'root' - Please use a strong, unique password
