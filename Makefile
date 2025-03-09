@@ -160,3 +160,7 @@ k8s-del-postgres:
 .PHONY: orb-ssh
 orb-ssh:
 	ssh orb
+
+.PHONY: laravel
+laravel:
+	docker compose up -d laravel-web laravel-db laravel-nginx --build
