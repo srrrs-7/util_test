@@ -7,7 +7,7 @@ env:
 	cd ../ && docker compose exec laravel-web php artisan env
 
 test:
-	cd ../ && docker compose exec laravel-web php artisan test
+	cd ../ && docker compose exec laravel-web php artisan test --parallel --processes=4
 
 test-f:
 	cd ../ && docker compose exec laravel-web php artisan make:test
