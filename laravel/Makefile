@@ -1,7 +1,19 @@
-.PHONY: init env test test-f migrate rollback migrate-f request model controller provider clear
+.PHONY: init fmt stan phpmd phpcs env test test-f migrate rollback migrate-f request model controller provider clear
 
 init:
 	cp .env.example .env
+
+fmt:
+	cd .. && docker compose exec laravel-web vendor/bin/php-cs-fixer fix ./app
+ 
+stan:
+	cd .. && docker compose exec laravel-web vendor/bin/phpstan analyse ./app
+ 
+phpmd:
+	cd .. && docker compose exec laravel-web vendor/bin/phpmd ./app text cleancode
+ 
+phpcs:
+	cd .. && docker compose exec laravel-web vendor/bin/phpcs --standard=PSR12 ./app
 
 env:
 	cd ../ && docker compose exec laravel-web php artisan env
