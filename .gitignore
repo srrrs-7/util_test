@@ -15,3 +15,5 @@ redoc/doc
 
 log
 wasm_pkg
+
+.php-cs-fixer.cache
