@@ -15,6 +15,9 @@ phpmd:
 phpcs:
 	cd .. && docker compose exec laravel-web vendor/bin/phpcs --standard=PSR12 ./app
 
+rector:
+	cd .. && docker compose exec laravel-web vendor/bin/rector process ./app
+
 env:
 	cd ../ && docker compose exec laravel-web php artisan env
 
