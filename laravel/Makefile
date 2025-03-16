@@ -4,19 +4,24 @@ init:
 	cp .env.example .env
 
 fmt:
-	cd .. && docker compose exec laravel-web vendor/bin/php-cs-fixer fix ./app
+	cd .. && docker compose exec laravel-web php -d memory_limit=1024M vendor/bin/php-cs-fixer fix ./app
  
 stan:
-	cd .. && docker compose exec laravel-web vendor/bin/phpstan analyse ./app
+	cd .. && docker compose exec laravel-web php -d memory_limit=1024M vendor/bin/phpstan analyse ./app
  
 phpmd:
-	cd .. && docker compose exec laravel-web vendor/bin/phpmd ./app text cleancode
+	cd .. && docker compose exec laravel-web php -d memory_limit=1024M vendor/bin/phpmd ./app text cleancode
  
 phpcs:
-	cd .. && docker compose exec laravel-web vendor/bin/phpcs --standard=PSR12 ./app
+	cd .. && docker compose exec laravel-web php -d memory_limit=1024M vendor/bin/phpcs --standard=PSR12 ./app
 
 rector:
-	cd .. && docker compose exec laravel-web vendor/bin/rector process ./app
+	cd .. && docker compose exec laravel-web php -d memory_limit=1024M vendor/bin/rector process --dry-run ./app
+	@read -p "Do you want to apply the changes? [y/N]: " answer; \
+	if [ "$$answer" != "y" ]; then \
+		exit 0; \
+	fi
+	cd .. && docker compose exec laravel-web php -d memory_limit=1024M vendor/bin/rector process ./app
 
 env:
 	cd ../ && docker compose exec laravel-web php artisan env
