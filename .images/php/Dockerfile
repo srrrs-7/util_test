@@ -20,8 +20,11 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd mysqli pdo_mysql zip
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
+COPY ./.images/php/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY --from=builder /var/www/laravel /var/www/laravel
 
 WORKDIR /var/www/laravel

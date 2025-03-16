@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "target": "ES2017",
+      "module": "ESNext",
+      "moduleResolution": "bundler",
+      "lib": ["ESNext", "DOM"],
+      "outDir": "dist",
+      "sourceMap": true,
+      "declaration": true, // 型定義ファイルを生成
+      "declarationDir": "dist/types", // 型定義ファイルの出力先 (任意)
+      "strict": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "skipLibCheck": true
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "src/**/*.test.ts"] // テストファイルは除外 (任意)
+  }

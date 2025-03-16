@@ -306,9 +306,7 @@ services:
 
   laravel-web:
     build:
-      dockerfile: ./.images/php.Dockerfile
-    ports:
-      - 9000:9000
+      dockerfile: ./.images/php/Dockerfile
     depends_on:
       - laravel-db
     volumes:
