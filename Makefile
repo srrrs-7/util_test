@@ -45,7 +45,7 @@ enqueue:
 dequeue:
 	docker compose run --rm aws sqs receive-message --endpoint-url=$(SQS_ENDPOINT) --queue-url=${QUEUE_URL}
 
-.PHONY: rds mongo goapi goworker gopher rust node deno bun php linux k6 plantuml
+.PHONY: rds mongo goapi goworker gopher rust rustapi rustworker node deno bun php linux k6 plantuml
 rds:
 	docker compose up -d rds --build
 mongo:
@@ -64,6 +64,10 @@ gopher:
 rust:
 	docker compose build rust
 	docker compose run --rm rust bash
+rustapi:
+	docker compose up -d rustapi --build
+rustworker:
+	docker compose up -d rustworker --build
 node:
 	docker compose build node
 	docker compose run --rm node bash

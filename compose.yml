@@ -181,6 +181,38 @@ services:
       - ./rust:/rust
       - ./wasm:/wasm
 
+  rustapi:
+    build:
+      dockerfile: ./rustapi/.images/api.Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      MODE: debug # debug or release
+      API_PORT: :8080
+      DB_URL: root:root@tcp(mysql:3306)/test?charset=utf8mb4&parseTime=True&loc=Local
+      CACHE_URL: rds:6379
+      CACHE_TTL: 3600
+      CACHE_PREFIX: RUSTAPI
+      SQS_URL: http://sqs:9324/000000000000/test
+      AWS_ACCESS_KEY_ID: access # local env
+      AWS_SECRET_ACCESS_KEY: secret # local env
+      DEFAULT_REGION: region # local env
+
+  rustworker:
+    build:
+      dockerfile: ./rustapi/.images/worker.Dockerfile
+    environment:
+      MODE: debug # debug or release
+      API_PORT: :8080
+      DB_URL: root:root@tcp(mysql:3306)/test?charset=utf8mb4&parseTime=True&loc=Local
+      CACHE_URL: rds:6379
+      CACHE_TTL: 3600
+      CACHE_PREFIX: RUSTAPI
+      SQS_URL: http://sqs:9324/000000000000/test
+      AWS_ACCESS_KEY_ID: access # local env
+      AWS_SECRET_ACCESS_KEY: secret # local env
+      DEFAULT_REGION: region # local env
+
   node:
     image: node:latest
     working_dir: /node

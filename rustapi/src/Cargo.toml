@@ -1,0 +1,7 @@
+[package]
+edition = "2024"
+name = "src"
+version = "0.1.0"
+
+[dependencies]
+lib = { path = "./lib" }
