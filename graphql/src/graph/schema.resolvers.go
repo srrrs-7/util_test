@@ -17,11 +17,13 @@ func (r *mutationResolver) CreateUser(ctx context.Context, name string, email st
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	fmt.Println("Users resolver called")
 	panic(fmt.Errorf("not implemented: Users - users"))
 }
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
+	fmt.Println("User resolver called")
 	panic(fmt.Errorf("not implemented: User - user"))
 }
 
