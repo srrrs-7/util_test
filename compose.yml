@@ -174,6 +174,29 @@ services:
       - ./go/src:/go/src
       - ./goapi/src:/go/goapi/src
 
+  gql:
+    image: gql:latest
+    build:
+      dockerfile: ./graphql/.images/api/Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      MODE: debug # debug or release
+      API_PORT: :8080
+      DB_URL: root:root@tcp(mysql:3306)/test?charset=utf8mb4&parseTime=True&loc=Local
+      CACHE_URL: rds:6379
+      CACHE_TTL: 3600
+    volumes:
+      - ./graphql/src:/go/src
+
+  gqlgen:
+    image: gqlgen:latest
+    build:
+      dockerfile: ./graphql/.images/dev/gqlgen.Dockerfile
+    working_dir: /go/src
+    volumes:
+      - ./graphql/src:/go/src
+
   rust:
     image: rust:latest
     platform: linux/arm64
@@ -182,6 +205,7 @@ services:
       - ./wasm:/wasm
 
   rustapi:
+    image: rustapi:latest
     build:
       dockerfile: ./rustapi/.images/api.Dockerfile
     ports:
