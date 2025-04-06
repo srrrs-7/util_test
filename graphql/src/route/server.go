@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 )
 
@@ -24,13 +25,12 @@ func NewServer() error {
 			},
 		),
 	)
+	srv.AddTransport(transport.POST{})
 
 	http.Handle("/",
 		loggingMiddleware(playground.Handler("GraphQL playground", "/query")),
 	)
-	http.Handle("/query",
-		loggingMiddleware(srv),
-	)
+	http.Handle("/query", srv)
 
 	return http.ListenAndServe(":"+port, nil)
 }
