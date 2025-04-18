@@ -53,6 +53,9 @@ controller:
 provider:
 	cd ../ && docker compose exec laravel-web php artisan make:provider
 
+job:
+	cd ../ && docker compose exec laravel-web php artisan make:job
+
 clear:
 	cd ../ && docker compose exec laravel-web sh -c "php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan cache:clear"
 
