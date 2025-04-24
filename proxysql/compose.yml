@@ -1,0 +1,35 @@
+services:
+  master:
+    build:
+      context: ./.images/db
+      dockerfile: Dockerfile
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test
+    volumes:
+      - ./master/data:/var/lib/mysql
+
+  slave:
+    build:
+      context: ./.images/db
+      dockerfile: Dockerfile
+    ports:
+      - 3307:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test
+    volumes:
+      - ./slave/data:/var/lib/mysql
+
+  proxysql:
+    build:
+      context: ./.images/proxy
+      dockerfile: Dockerfile
+    ports:
+      - 6032:6032
+      - 6033:6033
+    depends_on:
+      - master
+      - slave
