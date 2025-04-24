@@ -1,0 +1,45 @@
+<instruction>/Users/srrrs/claude配下にアプリを作成して</instruction> 
+
+<context>
+  <specification>
+    COSANというアプリ。
+    ユーザは任意の好きな文言を登録して、その登録日時をデータとして保持する。
+    登録した文言は、ユーザが指定した日時に通知される。
+    ユーザは、登録した文言をいつでも確認できる。
+    登録した文言は、登録日時に応じてランキングされる。
+    ユーザに対して、証明書を発行する。
+    ユーザは、証明書をいつでも確認できる。
+    ユーザは、証明書をいつでもダウンロードできる。
+    ユーザは、証明書をいつでも印刷できる。
+    ユーザは、証明書をいつでも共有できる。
+  </specification>
+
+  <technology>
+    frontend: React
+    runtime: Node.js pnpm
+    backend: go
+    database: PostgreSQL
+    cache: Redis
+    message queue: RabbitMQ
+    auth: OAuth2
+    token: JWT
+    CI/CD: GitHub Actions
+    container: Docker
+  </technology>
+
+  <architecture>
+    atomic design
+    modular monolith
+    onion architecture
+  </architecture>
+
+  <display>
+    ログイン画面:https://drive.google.com/file/d/1zJ2_Ew0NAGGlDuTHwk2G52s9XsJgW_bD/view?usp=sharing
+    利用規約画面:https://drive.google.com/file/d/1jSuc3xeaXbF45rh18sitO9TLHClHuWqK/view?usp=sharing
+  </display>
+</context> 
+
+<query>
+</query> 
+
+<option>見やすく図解して</option>
