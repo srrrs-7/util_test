@@ -1,15 +1,17 @@
 {
   "mcpServers": {
     "filesystem": {
-      "command": "npx",
+      "command": "bunx",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem"
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/srrrs/claude"
       ]
     },
     "qdrant": {
       "command": "uvx",
-      "args": ["mcp-server-qdrant"],
+      "args": [
+        "mcp-server-qdrant"
+      ],
       "env": {
         "QDRANT_URL": "http://localhost:6333",
         "COLLECTION_NAME": "your-collection",
@@ -18,28 +20,49 @@
     },
     "fetch": {
       "command": "uvx",
-      "args": ["mcp-server-fetch"]
+      "args": [
+        "mcp-server-fetch"
+      ]
     },
     "playwright": {
-      "command": "npx",
+      "command": "bunx",
       "args": [
         "@playwright/mcp@latest"
       ]
     },
     "memory": {
-      "command": "npx",
+      "command": "bunx",
       "args": [
-        "-y",
         "@modelcontextprotocol/server-memory"
       ]
     },
-    "grafana": {
-      "command": "mcp-grafana",
-      "args": [],
+    "notionApi": {
+      "timeout": 60,
+      "command": "bunx",
+      "args": [
+        "@notionhq/notion-mcp-server"
+      ],
       "env": {
-        "GRAFANA_URL": "http://localhost:3000",
-        "GRAFANA_API_KEY": "<your service account token>"
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer ******************\", \"Notion-Version\": \"2022-06-28\" }"
+      },
+      "transportType": "stdio"
+    },
+    "github": {
+      "command": "bunx",
+      "args": [
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "************************"
       }
+    },
+    "postgres": {
+      "command": "bunx",
+      "args": [
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://root:root@localhost:5432/test"
+      ]
     }
-  }
+  },
+  "globalShortcut": ""
 }
