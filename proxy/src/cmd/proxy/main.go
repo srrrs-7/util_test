@@ -148,7 +148,8 @@ func (p *MySQLProxy) transfer(src, dst net.Conn, direction string) (int64, error
 			dst.SetWriteDeadline(time.Now().Add(30 * time.Second))
 
 			// Write data
-			_, err = dst.Write(buffer[:n])
+			buf := buffer[:n]
+			_, err = dst.Write(buf)
 			if err != nil {
 				return total, err
 			}
