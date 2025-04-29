@@ -1,0 +1,33 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+    ports:
+      - 3306:3306
+    networks:
+      - proxy_network
+
+  proxy:
+    build:
+      dockerfile: ./.images/proxy/Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+    networks:
+      - proxy_network
+
+  client:
+    build:
+      context: .
+      dockerfile: ./.images/client/Dockerfile
+    ports:
+      - 8081:8080
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    driver: bridge
