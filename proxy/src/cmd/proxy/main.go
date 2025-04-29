@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -82,23 +83,43 @@ func (p *MySQLProxy) handleConnection(clientConn net.Conn) {
 		p.logger.Printf("failed to connect to target MySQL server: %v", err)
 		return
 	}
-	defer serverConn.Close()
+	// Do not defer serverConn.Close() here; close after both directions are done
 
-	// Handle bidirectional data transfer in separate goroutines
+	// Use WaitGroup to wait for both directions
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Channel to signal closure
+	done := make(chan struct{})
+
 	// Client -> Server
 	go func() {
-		if _, err := p.transfer(clientConn, serverConn, "C->S"); err != nil && err != io.EOF {
+		defer wg.Done()
+		_, err := p.transfer(clientConn, serverConn, "C->S")
+		if err != nil && err != io.EOF {
 			p.logger.Printf("client->server transfer error: %v", err)
 		}
-		// Close server connection if client disconnects
-		serverConn.Close()
+		// Signal done
+		close(done)
 	}()
 
 	// Server -> Client
-	if _, err := p.transfer(serverConn, clientConn, "S->C"); err != nil && err != io.EOF {
-		p.logger.Printf("server->client transfer error: %v", err)
-	}
+	go func() {
+		defer wg.Done()
+		select {
+		case <-done:
+			// Other direction closed, stop reading
+			return
+		default:
+			_, err := p.transfer(serverConn, clientConn, "S->C")
+			if err != nil && err != io.EOF {
+				p.logger.Printf("server->client transfer error: %v", err)
+			}
+		}
+	}()
 
+	wg.Wait()
+	serverConn.Close()
 	p.logger.Printf("connection closed: %s", clientConn.RemoteAddr())
 }
 

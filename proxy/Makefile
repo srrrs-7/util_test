@@ -1,4 +1,4 @@
-.PHONY: up down client mysql proxy
+.PHONY: up down client mysql proxy logs
 
 up:
 	docker compose up -d --build
@@ -18,3 +18,6 @@ mysql:
 
 proxy:
 	docker compose exec -it proxy sh
+
+logs:
+	docker compose logs -f --tail 100
