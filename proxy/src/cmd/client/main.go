@@ -26,7 +26,7 @@ type DBHandler struct {
 func main() {
 	// DB configuration
 	config := DBConfig{
-		Host:     "proxy",
+		Host:     "gomysql",
 		Port:     8080,
 		User:     "root",
 		Password: "root",

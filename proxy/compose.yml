@@ -19,12 +19,26 @@ services:
     networks:
       - proxy_network
 
+  gomysql:
+    build:
+      dockerfile: ./.images/gomysql/Dockerfile
+    ports:
+      - 8081:8080
+    depends_on:
+      - mysql
+    networks:
+      - proxy_network
+
   client:
     build:
       context: .
       dockerfile: ./.images/client/Dockerfile
     ports:
-      - 8081:8080
+      - 8082:8080
+    depends_on:
+      - mysql
+      - gomysql
+      - proxy
     networks:
       - proxy_network
 
