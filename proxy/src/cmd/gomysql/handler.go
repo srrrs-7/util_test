@@ -29,7 +29,7 @@ type QueryHandler struct {
 func (h *QueryHandler) initConnection(dbName string) error {
 	log.Printf("Initializing connection to database: %s", dbName)
 
-	if poolMap[dbName] != nil {
+	if h.pool != nil {
 		return nil
 	}
 
@@ -69,6 +69,7 @@ func (h *QueryHandler) HandleQuery(query string) (*mysql.Result, error) {
 		time.Duration(h.config.Setting.ConnLifetime)*time.Second,
 	)
 	defer cancel()
+
 	conn, err := h.pool.GetConn(ctx)
 	if err != nil {
 		log.Printf("Failed to get connection: %v", err)
