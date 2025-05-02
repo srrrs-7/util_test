@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"proxy/config"
+	"sync"
 	"time"
 
 	"github.com/go-mysql-org/go-mysql/client"
@@ -21,11 +22,16 @@ type QueryHandler struct {
 	config config.Config
 	pool   *client.Pool
 	txConn *client.Conn
+	mu     sync.Mutex
 }
 
 // initConnection establishes the initial connection to the target database
 func (h *QueryHandler) initConnection(dbName string) error {
 	log.Printf("Initializing connection to database: %s", dbName)
+
+	if poolMap[dbName] != nil {
+		return nil
+	}
 
 	// Establish a new connection
 	connPool, err := client.NewPoolWithOptions(
@@ -88,14 +94,17 @@ func (h *QueryHandler) HandleQuery(query string) (*mysql.Result, error) {
 func (h *QueryHandler) UseDB(dbName string) error {
 	log.Printf("Switching to database: %s", dbName)
 
-	if poolMap[dbName] == nil {
-		h.pool = poolMap[dbName]
-		return nil
-	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	if err := h.initConnection(dbName); err != nil {
 		log.Printf("Failed to switch database: %v", err)
 		return err
+	}
+
+	if poolMap[dbName] == nil {
+		h.pool = poolMap[dbName]
+		return nil
 	}
 
 	return nil
