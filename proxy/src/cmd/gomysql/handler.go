@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	poolMap map[string]*client.Pool
+	poolMap = make(map[string]*client.Pool)
 )
 
 // QueryHandler is a custom handler for processing simple MySQL queries
@@ -29,7 +29,7 @@ type QueryHandler struct {
 func (h *QueryHandler) initConnection(dbName string) error {
 	log.Printf("Initializing connection to database: %s", dbName)
 
-	if h.pool != nil {
+	if poolMap[dbName] != nil {
 		return nil
 	}
 
