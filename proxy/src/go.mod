@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/go-mysql-org/go-mysql v1.12.0
 	github.com/go-sql-driver/mysql v1.9.2
-	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

@@ -5,26 +5,28 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"regexp"
-	"strings"
+	"proxy/config"
 	"time"
 
 	"github.com/go-mysql-org/go-mysql/client"
 	"github.com/go-mysql-org/go-mysql/mysql"
-	"github.com/xwb1989/sqlparser"
 )
 
 var (
-	poolMap = make(map[string]*client.Pool)
+	poolMap map[string]*client.Pool
 )
 
 // QueryHandler is a custom handler for processing simple MySQL queries
 type QueryHandler struct {
-	pool *client.Pool
+	config config.Config
+	pool   *client.Pool
+	txConn *client.Conn
 }
 
 // initConnection establishes the initial connection to the target database
 func (h *QueryHandler) initConnection(dbName string) error {
+	log.Printf("Initializing connection to database: %s", dbName)
+
 	// Establish a new connection
 	connPool, err := client.NewPoolWithOptions(
 		TARGET_ADDR,
@@ -32,8 +34,14 @@ func (h *QueryHandler) initConnection(dbName string) error {
 		TARGET_PASS,
 		dbName,
 		client.WithLogger(slog.Default()),
-		client.WithNewPoolPingTimeout(CONN_TIMEOUT*time.Second),
-		client.WithPoolLimits(MIN_OPEN_CONNS, MAX_IDLE_CONNS, MAX_OPEN_CONNS),
+		client.WithNewPoolPingTimeout(
+			time.Duration(h.config.Setting.ConnLifetime)*time.Second,
+		),
+		client.WithPoolLimits(
+			h.config.Setting.MinOpenConns,
+			h.config.Setting.MaxIdleConns,
+			h.config.Setting.MaxOpenConns,
+		),
 	)
 	if err != nil {
 		log.Printf("Failed to create connection pool: %v", err)
@@ -46,32 +54,14 @@ func (h *QueryHandler) initConnection(dbName string) error {
 	return nil
 }
 
-func (h *QueryHandler) splitQuery(query string) ([]string, error) {
-	// stored procedure regex
-	if regexp.MustCompile(`(?i)BEGIN\s+[\s\S]*?END`).MatchString(query) {
-		return []string{query}, nil
-	}
-
-	queries, err := sqlparser.SplitStatementToPieces(query)
-	if err != nil {
-		log.Printf("Failed to split query: %v", err)
-		return nil, err
-	}
-
-	return queries, nil
-}
-
 // HandleQuery processes queries from clients
 func (h *QueryHandler) HandleQuery(query string) (*mysql.Result, error) {
 	log.Printf("Handle query: %s", query)
 
-	queries, err := h.splitQuery(query)
-	if err != nil {
-		log.Printf("Failed to split query: %v", err)
-		return nil, err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(CONN_TIMEOUT)*time.Second)
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		time.Duration(h.config.Setting.ConnLifetime)*time.Second,
+	)
 	defer cancel()
 	conn, err := h.pool.GetConn(ctx)
 	if err != nil {
@@ -79,18 +69,16 @@ func (h *QueryHandler) HandleQuery(query string) (*mysql.Result, error) {
 		return nil, err
 	}
 
-	var res *mysql.Result
-	for _, q := range queries {
-		if q = strings.Trim(q, " "); q == "\n" || q == "" {
-			continue
-		}
-
-		res, err = conn.Execute(query)
-		h.pool.PutConn(conn)
+	res, err := conn.ExecuteMultiple(query, func(result *mysql.Result, err error) {
 		if err != nil {
-			log.Printf("Failed to execute query: %v", err)
-			return nil, err
+			log.Printf("Error executing query: %v", err)
+			return
 		}
+	})
+	defer h.pool.PutConn(conn)
+	if err != nil {
+		log.Printf("Failed to execute query: %v", err)
+		return nil, err
 	}
 
 	return res, nil
@@ -98,9 +86,10 @@ func (h *QueryHandler) HandleQuery(query string) (*mysql.Result, error) {
 
 // UseDB processes database selection commands
 func (h *QueryHandler) UseDB(dbName string) error {
-	log.Println("UseDB:", dbName)
+	log.Printf("Switching to database: %s", dbName)
 
-	if poolMap[dbName] != nil {
+	if poolMap[dbName] == nil {
+		h.pool = poolMap[dbName]
 		return nil
 	}
 

@@ -1,0 +1,17 @@
+server:
+  user: root
+  pass: root
+  addr: 0.0.0.0:8080
+
+database:
+  test:
+    user: root
+    pass: root
+    addr: mysql:3306
+    name: test
+
+setting:
+  min_open_conns: 10
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_lifetime: 10

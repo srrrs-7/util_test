@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"proxy/config"
 
 	"github.com/go-mysql-org/go-mysql/server"
 )
@@ -24,14 +25,16 @@ const (
 )
 
 func main() {
+	conf := config.NewConfig()
+
 	// Listen for connections on localhost port 3307
-	l, err := net.Listen("tcp", LISTEN_ADDR)
+	l, err := net.Listen("tcp", conf.Server.Addr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer l.Close()
 
-	log.Printf("MySQL proxy server listening on %s", LISTEN_ADDR)
+	log.Printf("MySQL proxy server listening on %s", conf.Server.Addr)
 
 	// Accept connections in a loop
 	for {
@@ -42,26 +45,25 @@ func main() {
 			continue
 		}
 
-		// Handle each connection in a goroutine
-		handleListen(c)
+		go func(c net.Conn, conf config.Config) {
+			// Handle each connection in a goroutine
+			go handleListen(c, conf)
+		}(c, conf)
 	}
 }
 
-func handleListen(c net.Conn) {
+func handleListen(c net.Conn, conf config.Config) {
 	defer c.Close()
 
-	handle := &QueryHandler{}
-
-	if err := handle.UseDB(""); err != nil {
-		log.Printf("Failed to initialize connection: %v", err)
-		return
+	handle := &QueryHandler{
+		config: conf,
 	}
 
 	// Create a connection with user root and password root.
 	conn, err := server.NewDefaultServer().NewConn(
 		c,
-		LISTEN_USER,
-		LISTEN_PASS,
+		conf.Server.User,
+		conf.Server.Pass,
 		handle,
 	)
 	if err != nil {

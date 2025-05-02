@@ -26,6 +26,8 @@ services:
       - 8081:8080
     depends_on:
       - mysql
+    volumes:
+      - ./config.yaml:/tmp/proxy/config.yaml
     networks:
       - proxy_network
 
