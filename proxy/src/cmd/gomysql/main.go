@@ -2,9 +2,12 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net"
 	"proxy/config"
+	"time"
 
+	"github.com/go-mysql-org/go-mysql/client"
 	"github.com/go-mysql-org/go-mysql/server"
 )
 
@@ -55,8 +58,29 @@ func main() {
 func handleListen(c net.Conn, conf config.Config) {
 	defer c.Close()
 
+	// Establish a new connection
+	pool, err := client.NewPoolWithOptions(
+		conf.Database.Test.Addr,
+		conf.Database.Test.User,
+		conf.Database.Test.Pass,
+		conf.Database.Test.Name,
+		client.WithLogger(slog.Default()),
+		client.WithNewPoolPingTimeout(
+			time.Duration(conf.Setting.ConnLifetime)*time.Second,
+		),
+		client.WithPoolLimits(
+			conf.Setting.MinOpenConns,
+			conf.Setting.MaxIdleConns,
+			conf.Setting.MaxOpenConns,
+		),
+	)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	handle := &QueryHandler{
 		config: conf,
+		pool:   pool,
 	}
 
 	// Create a connection with user root and password root.

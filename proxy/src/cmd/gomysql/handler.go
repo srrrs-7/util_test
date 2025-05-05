@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"log/slog"
 	"proxy/config"
 	"sync"
 	"time"
@@ -13,51 +12,12 @@ import (
 	"github.com/go-mysql-org/go-mysql/mysql"
 )
 
-var (
-	poolMap = make(map[string]*client.Pool)
-)
-
 // QueryHandler is a custom handler for processing simple MySQL queries
 type QueryHandler struct {
 	config config.Config
 	pool   *client.Pool
 	txConn *client.Conn
 	mu     sync.Mutex
-}
-
-// initConnection establishes the initial connection to the target database
-func (h *QueryHandler) initConnection(dbName string) error {
-	log.Printf("Initializing connection to database: %s", dbName)
-
-	if poolMap[dbName] != nil {
-		return nil
-	}
-
-	// Establish a new connection
-	connPool, err := client.NewPoolWithOptions(
-		TARGET_ADDR,
-		TARGET_USER,
-		TARGET_PASS,
-		dbName,
-		client.WithLogger(slog.Default()),
-		client.WithNewPoolPingTimeout(
-			time.Duration(h.config.Setting.ConnLifetime)*time.Second,
-		),
-		client.WithPoolLimits(
-			h.config.Setting.MinOpenConns,
-			h.config.Setting.MaxIdleConns,
-			h.config.Setting.MaxOpenConns,
-		),
-	)
-	if err != nil {
-		log.Printf("Failed to create connection pool: %v", err)
-		return err
-	}
-
-	poolMap[dbName] = connPool
-	h.pool = connPool
-
-	return nil
 }
 
 // HandleQuery processes queries from clients
@@ -97,16 +57,6 @@ func (h *QueryHandler) UseDB(dbName string) error {
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
-
-	if err := h.initConnection(dbName); err != nil {
-		log.Printf("Failed to switch database: %v", err)
-		return err
-	}
-
-	if poolMap[dbName] == nil {
-		h.pool = poolMap[dbName]
-		return nil
-	}
 
 	return nil
 }
