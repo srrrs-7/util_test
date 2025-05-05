@@ -11,22 +11,6 @@ import (
 	"github.com/go-mysql-org/go-mysql/server"
 )
 
-const (
-	LISTEN_ADDR = "0.0.0.0:8080"
-	LISTEN_USER = "root"
-	LISTEN_PASS = "root"
-	TARGET_ADDR = "mysql:3306"
-	TARGET_USER = "root"
-	TARGET_PASS = "root"
-
-	// Connection pool configuration
-	MAX_IDLE_CONNS    = 50  // Maximum number of idle connections
-	MIN_OPEN_CONNS    = 10  // Minimum number of open connections
-	MAX_OPEN_CONNS    = 100 // Maximum number of open connections (reduced to prevent "Too many connections")
-	MAX_CONN_LIFETIME = 300 // Maximum connection lifetime (seconds)
-	CONN_TIMEOUT      = 60  // Connection timeout (seconds)
-)
-
 func main() {
 	conf := config.NewConfig()
 
@@ -50,7 +34,7 @@ func main() {
 
 		go func(c net.Conn, conf config.Config) {
 			// Handle each connection in a goroutine
-			go handleListen(c, conf)
+			handleListen(c, conf)
 		}(c, conf)
 	}
 }
