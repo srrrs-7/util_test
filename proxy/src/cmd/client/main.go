@@ -69,7 +69,7 @@ func main() {
 		log.Printf("- ID=%d, Name=%s", u.ID, u.Name)
 	}
 
-	if err = db.TransferPoints(user.ID, 2, 10); err != nil {
+	if err = db.TransferPoints(1, 2, 10); err != nil {
 		log.Printf("Failed to transfer points: %v", err)
 	}
 }
