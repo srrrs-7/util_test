@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net"
 	"proxy/config"
+	"strings"
 	"time"
 
 	"github.com/go-mysql-org/go-mysql/client"
@@ -81,10 +82,13 @@ func handleListen(c net.Conn, conf config.Config) {
 	// Handle commands until the client disconnects
 	for {
 		if err := conn.HandleCommand(); err != nil {
+			if strings.Contains(err.Error(), "connection closed") {
+				log.Printf("Connection closed from %s", c.RemoteAddr().String())
+				break
+
+			}
 			log.Printf("Command handling error: %v", err)
 			break
 		}
 	}
-
-	log.Printf("Connection closed from %s", c.RemoteAddr().String())
 }
