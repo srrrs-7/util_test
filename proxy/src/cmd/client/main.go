@@ -49,27 +49,28 @@ func main() {
 	userID, err := db.CreateUser("Taro Tanaka", "tanaka@example.com")
 	if err != nil {
 		log.Printf("Failed to create user: %v", err)
-	} else {
-		log.Printf("User created. ID: %d", userID)
 	}
+	log.Printf("User created. ID: %d", userID)
 
 	// Example: Get user
 	user, err := db.GetUserByID(1)
 	if err != nil {
 		log.Printf("Failed to get user: %v", err)
-	} else {
-		log.Printf("User: ID=%d, Name=%s, Email=%s", user.ID, user.Name, user.Email)
 	}
+	log.Printf("User: ID=%d, Name=%s, Email=%s", user.ID, user.Name, user.Email)
 
 	// Example: Get all users
 	users, err := db.GetAllUsers()
 	if err != nil {
 		log.Printf("Failed to get user list: %v", err)
-	} else {
-		log.Printf("Found %d users in total", len(users))
-		for _, u := range users {
-			log.Printf("- ID=%d, Name=%s", u.ID, u.Name)
-		}
+	}
+	log.Printf("Found %d users in total", len(users))
+	for _, u := range users {
+		log.Printf("- ID=%d, Name=%s", u.ID, u.Name)
+	}
+
+	if err = db.TransferPoints(user.ID, 2, 10); err != nil {
+		log.Printf("Failed to transfer points: %v", err)
 	}
 }
 
