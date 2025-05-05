@@ -32,10 +32,9 @@ func main() {
 			continue
 		}
 
-		go func(c net.Conn, conf config.Config) {
-			// Handle each connection in a goroutine
-			handleListen(c, conf)
-		}(c, conf)
+		// Handle each connection in a goroutine
+		go handleListen(c, conf)
+
 	}
 }
 
