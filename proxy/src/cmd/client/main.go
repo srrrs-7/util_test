@@ -49,15 +49,17 @@ func main() {
 	userID, err := db.CreateUser("Taro Tanaka", "tanaka@example.com")
 	if err != nil {
 		log.Printf("Failed to create user: %v", err)
+	} else {
+		log.Printf("User created. ID: %d", userID)
 	}
-	log.Printf("User created. ID: %d", userID)
 
 	// Example: Get user
 	user, err := db.GetUserByID(1)
 	if err != nil {
 		log.Printf("Failed to get user: %v", err)
+	} else {
+		log.Printf("User: ID=%d, Name=%s, Email=%s", user.ID, user.Name, user.Email)
 	}
-	log.Printf("User: ID=%d, Name=%s, Email=%s", user.ID, user.Name, user.Email)
 
 	// Example: Get all users
 	users, err := db.GetAllUsers()
