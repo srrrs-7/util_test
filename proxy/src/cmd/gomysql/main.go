@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"net"
@@ -18,6 +19,7 @@ var (
 
 func main() {
 	conf := config.NewConfig()
+	fmt.Printf("Config: %+v\n", conf)
 
 	// Listen for connections on localhost port 3307
 	l, err := net.Listen("tcp", conf.Server.Addr)
