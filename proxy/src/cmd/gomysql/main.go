@@ -59,7 +59,6 @@ func main() {
 
 		// Handle each connection in a goroutine
 		go handleListen(c, conf)
-
 	}
 }
 
