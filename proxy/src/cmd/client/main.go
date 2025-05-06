@@ -1,12 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 // Database connection information
@@ -20,7 +20,16 @@ type DBConfig struct {
 
 // DB handler
 type DBHandler struct {
-	db *sql.DB
+	db *gorm.DB
+}
+
+// User構造体にgormタグを追加
+type User struct {
+	ID        int       `gorm:"primaryKey;autoIncrement"`
+	Name      string    `gorm:"size:100;not null"`
+	Email     string    `gorm:"size:100;not null;unique"`
+	Points    int       `gorm:"default:0"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
 }
 
 func main() {
@@ -76,151 +85,74 @@ func main() {
 	}
 }
 
-// Create a new DB handler
+// gormでDB接続
 func NewDBHandler(config DBConfig) (*DBHandler, error) {
-	// Create connection string
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
 		config.User, config.Password, config.Host, config.Port, config.DBName)
 
-	// Connect to DB
-	db, err := sql.Open("mysql", dsn)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("Database connection error: %w", err)
 	}
-
-	// Connection test
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("Database connection check error: %w", err)
-	}
-
-	// Connection pool settings
-	db.SetMaxOpenConns(25)                 // Maximum number of connections
-	db.SetMaxIdleConns(25)                 // Maximum number of idle connections
-	db.SetConnMaxLifetime(5 * time.Minute) // Maximum lifetime of a connection
-
 	return &DBHandler{db: db}, nil
 }
 
-// Close DB handler
 func (h *DBHandler) Close() error {
-	return h.db.Close()
-}
-
-// Sample data structure
-type User struct {
-	ID        int
-	Name      string
-	Email     string
-	CreatedAt time.Time
-}
-
-func (h *DBHandler) EnsureTablesExist() error {
-	// users テーブルを作成
-	query := `
-	CREATE TABLE IF NOT EXISTS users (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		name VARCHAR(100) NOT NULL,
-		email VARCHAR(100) NOT NULL UNIQUE,
-		points INT DEFAULT 0,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	)
-	`
-
-	_, err := h.db.Exec(query)
+	sqlDB, err := h.db.DB()
 	if err != nil {
-		return fmt.Errorf("failed to create table: %w", err)
+		return err
 	}
+	return sqlDB.Close()
+}
 
-	log.Println("Table users created or already exists")
+// Create tables with AutoMigrate
+func (h *DBHandler) EnsureTablesExist() error {
+	if err := h.db.AutoMigrate(&User{}); err != nil {
+		return fmt.Errorf("failed to migrate table: %w", err)
+	}
+	log.Println("Table users migrated or already exists")
 	return nil
 }
 
-// Get user by ID
+// CreateUser with gorm
+func (h *DBHandler) CreateUser(name, email string) (int, error) {
+	user := User{Name: name, Email: email}
+	if err := h.db.Create(&user).Error; err != nil {
+		return 0, fmt.Errorf("User creation error: %w", err)
+	}
+	return user.ID, nil
+}
+
+// GetUserByID with gorm
 func (h *DBHandler) GetUserByID(id int) (*User, error) {
 	var user User
-	query := "SELECT id, name, email, created_at FROM users WHERE id = ?"
-
-	err := h.db.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if err := h.db.First(&user, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("User with ID %d does not exist", id)
 		}
 		return nil, fmt.Errorf("User retrieval error: %w", err)
 	}
-
 	return &user, nil
 }
 
-// Create a new user
-func (h *DBHandler) CreateUser(name, email string) (int, error) {
-	query := "INSERT INTO users (name, email, created_at) VALUES (?, ?, ?)"
-
-	result, err := h.db.Exec(query, name, email, time.Now())
-	if err != nil {
-		return 0, fmt.Errorf("User creation error: %w", err)
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("Insert ID retrieval error: %w", err)
-	}
-
-	return int(id), nil
-}
-
-// Get all users
+// GetAllUsers with gorm
 func (h *DBHandler) GetAllUsers() ([]User, error) {
-	query := "SELECT id, name, email, created_at FROM users"
-
-	rows, err := h.db.Query(query)
-	if err != nil {
+	var users []User
+	if err := h.db.Find(&users).Error; err != nil {
 		return nil, fmt.Errorf("User list retrieval error: %w", err)
 	}
-	defer rows.Close()
-
-	var users []User
-	for rows.Next() {
-		var user User
-		if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt); err != nil {
-			return nil, fmt.Errorf("User data reading error: %w", err)
-		}
-		users = append(users, user)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Row iteration error: %w", err)
-	}
-
 	return users, nil
 }
 
-// Transaction example
+// TransferPoints with gorm transaction
 func (h *DBHandler) TransferPoints(fromUserID, toUserID, points int) error {
-	// Start transaction
-	tx, err := h.db.Begin()
-	if err != nil {
-		return fmt.Errorf("Transaction start error: %w", err)
-	}
-
-	// Ensure rollback (disabled upon commit)
-	defer tx.Rollback()
-
-	// Deduct points from fromUser
-	_, err = tx.Exec("UPDATE users SET points = points - ? WHERE id = ?", points, fromUserID)
-	if err != nil {
-		return fmt.Errorf("Point deduction error: %w", err)
-	}
-
-	// Add points to toUser
-	_, err = tx.Exec("UPDATE users SET points = points + ? WHERE id = ?", points, toUserID)
-	if err != nil {
-		return fmt.Errorf("Point addition error: %w", err)
-	}
-
-	// Commit transaction
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("Transaction commit error: %w", err)
-	}
-
-	return nil
+	return h.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&User{}).Where("id = ?", fromUserID).UpdateColumn("points", gorm.Expr("points - ?", points)).Error; err != nil {
+			return fmt.Errorf("Point deduction error: %w", err)
+		}
+		if err := tx.Model(&User{}).Where("id = ?", toUserID).UpdateColumn("points", gorm.Expr("points + ?", points)).Error; err != nil {
+			return fmt.Errorf("Point addition error: %w", err)
+		}
+		return nil
+	})
 }

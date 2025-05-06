@@ -12,6 +12,10 @@ import (
 	"github.com/go-mysql-org/go-mysql/server"
 )
 
+var (
+	pool *client.Pool
+)
+
 func main() {
 	conf := config.NewConfig()
 
@@ -23,6 +27,26 @@ func main() {
 	defer l.Close()
 
 	log.Printf("MySQL proxy server listening on %s", conf.Server.Addr)
+
+	// Establish a new connection
+	pool, err = client.NewPoolWithOptions(
+		conf.Database.Test.Addr,
+		conf.Database.Test.User,
+		conf.Database.Test.Pass,
+		conf.Database.Test.Name,
+		client.WithLogger(slog.Default()),
+		client.WithNewPoolPingTimeout(
+			time.Duration(conf.Setting.ConnLifetime)*time.Second,
+		),
+		client.WithPoolLimits(
+			conf.Setting.MinOpenConns,
+			conf.Setting.MaxIdleConns,
+			conf.Setting.MaxOpenConns,
+		),
+	)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	// Accept connections in a loop
 	for {
@@ -41,26 +65,6 @@ func main() {
 
 func handleListen(c net.Conn, conf config.Config) {
 	defer c.Close()
-
-	// Establish a new connection
-	pool, err := client.NewPoolWithOptions(
-		conf.Database.Test.Addr,
-		conf.Database.Test.User,
-		conf.Database.Test.Pass,
-		conf.Database.Test.Name,
-		client.WithLogger(slog.Default()),
-		client.WithNewPoolPingTimeout(
-			time.Duration(conf.Setting.ConnLifetime)*time.Second,
-		),
-		client.WithPoolLimits(
-			conf.Setting.MinOpenConns,
-			conf.Setting.MaxIdleConns,
-			conf.Setting.MaxOpenConns,
-		),
-	)
-	if err != nil {
-		panic(err.Error())
-	}
 
 	handle := &QueryHandler{
 		config: conf,
