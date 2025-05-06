@@ -23,7 +23,7 @@ type DBHandler struct {
 	db *gorm.DB
 }
 
-// User構造体にgormタグを追加
+// Add gorm tags to User struct
 type User struct {
 	ID        int       `gorm:"primaryKey;autoIncrement"`
 	Name      string    `gorm:"size:100;not null"`
@@ -51,7 +51,7 @@ func main() {
 
 	// Ensure tables exist
 	if err := db.EnsureTablesExist(); err != nil {
-		log.Fatalf("テーブル確認エラー: %v", err)
+		log.Fatalf("Table check error: %v", err)
 	}
 
 	// Example: Create user
@@ -85,7 +85,7 @@ func main() {
 	}
 }
 
-// gormでDB接続
+// Connect to DB with gorm
 func NewDBHandler(config DBConfig) (*DBHandler, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
 		config.User, config.Password, config.Host, config.Port, config.DBName)
