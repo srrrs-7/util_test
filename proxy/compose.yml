@@ -24,6 +24,14 @@ services:
       dockerfile: ./.images/gomysql/Dockerfile
     ports:
       - 8081:8080
+    environment:
+      PROXY_ADDR: gomysql:8080
+      PROXY_USER: root
+      PROXY_PASS: root
+      TEST_DB_ADDR: mysql:3306
+      TEST_DB_USER: root
+      TEST_DB_PASS: root
+      TEST_DB_NAME: test
     depends_on:
       - mysql
     volumes:
