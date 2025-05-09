@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -42,6 +44,8 @@ const (
 const (
 	defaultShutdownTimeout = 30 * time.Second
 )
+
+var atomPool atomic.Pointer[client.Pool]
 
 // Env is a struct that holds database connection information loaded from environment variables
 type Env struct {
@@ -121,10 +125,23 @@ func (s *ProxyServer) Start() error {
 		return fmt.Errorf("failed to listen on address: %w", err)
 	}
 	s.listener = l
-
 	log.Printf("MySQL proxy server successfully listening on %s", proxyAddr)
 
 	go s.handleSignals()
+
+	pool, err := client.NewPoolWithOptions(
+		s.dbConfMap[DBTypeTest].Addr,
+		s.dbConfMap[DBTypeTest].User,
+		s.dbConfMap[DBTypeTest].Pass,
+		s.dbConfMap[DBTypeTest].DBName,
+		client.WithPoolLimits(16, 64, 32),
+		client.WithLogger(slog.Default()),
+		client.WithNewPoolPingTimeout(5*time.Second),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create connection pool: %w", err)
+	}
+	atomPool.Store(pool)
 
 	// Loop to accept connections
 	for {
@@ -164,16 +181,12 @@ func (s *ProxyServer) handleConnection(conn net.Conn) {
 		conn.SetDeadline(time.Now())
 	}()
 
-	client, err := client.Connect(
-		s.dbConfMap[DBTypeTest].Addr,
-		s.dbConfMap[DBTypeTest].User,
-		s.dbConfMap[DBTypeTest].Pass,
-		s.dbConfMap[DBTypeTest].DBName,
-	)
+	client, err := atomPool.Load().GetConn(context.Background())
 	if err != nil {
-		log.Panic("Failed to connect to MySQL server: ", err)
+		log.Printf("Failed to get connection from pool: %v", err)
+		conn.Close()
+		return
 	}
-	defer client.Close()
 
 	// Create MySQL server connection
 	serverConn, err := server.NewDefaultServer().NewConn(
