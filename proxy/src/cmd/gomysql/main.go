@@ -187,6 +187,7 @@ func (s *ProxyServer) handleConnection(conn net.Conn) {
 		conn.Close()
 		return
 	}
+	defer atomPool.Load().PutConn(client)
 
 	// Create MySQL server connection
 	serverConn, err := server.NewDefaultServer().NewConn(
