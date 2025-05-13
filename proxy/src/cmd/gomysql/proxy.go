@@ -28,8 +28,6 @@ const (
 
 var errorConnectionClosed = errors.New("connection closed")
 
-var atomPool atomic.Pointer[client.Pool]
-
 // DBConfig is a struct that holds database connection configuration information
 type DBConfig struct {
 	DBName string
@@ -43,35 +41,23 @@ type ProxyServer struct {
 	listener     net.Listener
 	listenDbConf DBConfig
 	targetDbConf DBConfig
-	ctx          context.Context
-	cancel       context.CancelFunc
 	wg           sync.WaitGroup
-	shutdownCh   chan struct{}
+	atomPool     atomic.Pointer[client.Pool]
 }
 
 // NewProxyServer creates a new ProxyServer instance
-func NewProxyServer(pAddr, pUser, pPass, tAddr, tUser, tPass, tDbName string) *ProxyServer {
-	ctx, cancel := context.WithCancel(context.Background())
+func NewProxyServer(pConf, tConf DBConfig, l net.Listener) *ProxyServer {
 	return &ProxyServer{
-		listenDbConf: DBConfig{Addr: pAddr, User: pUser, Pass: pPass},
-		targetDbConf: DBConfig{Addr: tAddr, User: tUser, Pass: tPass, DBName: tDbName},
+		listener:     l,
+		listenDbConf: pConf,
+		targetDbConf: tConf,
 		wg:           sync.WaitGroup{},
-		ctx:          ctx,
-		cancel:       cancel,
-		shutdownCh:   make(chan struct{}),
+		atomPool:     atomic.Pointer[client.Pool]{},
 	}
 }
 
 // Start starts the MySQL proxy server
 func (s *ProxyServer) Start() error {
-	proxyAddr := s.listenDbConf.Addr
-	l, err := net.Listen("tcp", proxyAddr)
-	if err != nil {
-		return fmt.Errorf("failed to listen on address: %w", err)
-	}
-	s.listener = l
-	log.Printf("MySQL proxy server successfully listening on %s", proxyAddr)
-
 	go s.handleSignals()
 
 	pool, err := client.NewPoolWithOptions(
@@ -86,11 +72,14 @@ func (s *ProxyServer) Start() error {
 	if err != nil {
 		return fmt.Errorf("failed to create connection pool: %w", err)
 	}
-	atomPool.Store(pool)
+	s.atomPool.Store(pool)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Loop to accept connections
 	for {
-		conn, err := l.Accept()
+		conn, err := s.listener.Accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
 				log.Println("Listener closed, exiting accept loop")
@@ -101,7 +90,7 @@ func (s *ProxyServer) Start() error {
 		}
 
 		s.wg.Add(1)
-		go s.handleConnection(conn)
+		go s.handleConnection(ctx, conn)
 	}
 
 	return nil
@@ -117,22 +106,22 @@ func (s *ProxyServer) handleSignals() {
 }
 
 // handleConnection processes a new client connection
-func (s *ProxyServer) handleConnection(conn net.Conn) {
+func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 	defer s.wg.Done()
 
 	go func() {
-		<-s.ctx.Done()
+		<-ctx.Done()
 		log.Printf("Shutting down connection from %s", conn.RemoteAddr().String())
 		conn.SetDeadline(time.Now())
 	}()
 
-	client, err := atomPool.Load().GetConn(context.Background())
+	client, err := s.atomPool.Load().GetConn(context.Background())
 	if err != nil {
 		log.Printf("Failed to get connection from pool: %v", err)
 		conn.Close()
 		return
 	}
-	defer atomPool.Load().PutConn(client)
+	defer s.atomPool.Load().PutConn(client)
 
 	// Create MySQL server connection
 	serverConn, err := server.NewDefaultServer().NewConn(
@@ -161,10 +150,6 @@ func (s *ProxyServer) handleConnection(conn net.Conn) {
 
 // Shutdown gracefully shuts down the proxy server
 func (s *ProxyServer) Shutdown() {
-	s.cancel()
-	s.listener.Close()
-	close(s.shutdownCh)
-
 	done := make(chan struct{})
 	go func() {
 		s.wg.Wait()

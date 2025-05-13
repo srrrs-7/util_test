@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
 )
 
@@ -76,15 +77,32 @@ func main() {
 		log.Panic("Failed to load environment variables: ", err)
 	}
 
+	proxyConf := DBConfig{
+		Addr: env.proxyAddr,
+		User: env.proxyUser,
+		Pass: env.proxyPass,
+	}
+
+	testDBConf := DBConfig{
+		Addr:   env.testDBAddr,
+		User:   env.testDBUser,
+		Pass:   env.testDBPass,
+		DBName: env.testDBName,
+	}
+
+	l, err := net.Listen("tcp", env.proxyAddr)
+	if err != nil {
+		log.Panic("Failed to listen on proxy address: ", err)
+	}
+	defer l.Close()
+
+	log.Printf("MySQL proxy server successfully listening on %s", env.proxyAddr)
+
 	// Create and start the proxy server
 	proxyServer := NewProxyServer(
-		env.proxyAddr,
-		env.proxyUser,
-		env.proxyPass,
-		env.testDBAddr,
-		env.testDBUser,
-		env.testDBPass,
-		env.testDBName,
+		proxyConf,
+		testDBConf,
+		l,
 	)
 	if err := proxyServer.Start(); err != nil {
 		log.Panic("Failed to start proxy server: ", err)
