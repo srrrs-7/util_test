@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 )
 
 // Constants for environment variable names
@@ -103,6 +104,7 @@ func main() {
 		proxyConf,
 		testDBConf,
 		l,
+		&sync.WaitGroup{},
 	)
 	if err := proxyServer.Start(); err != nil {
 		log.Panic("Failed to start proxy server: ", err)

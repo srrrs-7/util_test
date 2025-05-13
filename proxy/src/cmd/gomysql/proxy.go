@@ -41,18 +41,17 @@ type ProxyServer struct {
 	listener     net.Listener
 	listenDbConf DBConfig
 	targetDbConf DBConfig
-	wg           sync.WaitGroup
+	wg           *sync.WaitGroup
 	atomPool     atomic.Pointer[client.Pool]
 }
 
 // NewProxyServer creates a new ProxyServer instance
-func NewProxyServer(pConf, tConf DBConfig, l net.Listener) *ProxyServer {
+func NewProxyServer(pConf, tConf DBConfig, l net.Listener, wg *sync.WaitGroup) *ProxyServer {
 	return &ProxyServer{
 		listener:     l,
 		listenDbConf: pConf,
 		targetDbConf: tConf,
-		wg:           sync.WaitGroup{},
-		atomPool:     atomic.Pointer[client.Pool]{},
+		wg:           wg,
 	}
 }
 
@@ -138,11 +137,10 @@ func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 	// Process commands until client disconnects
 	for {
 		if err := serverConn.HandleCommand(); err != nil {
-			if errors.Is(err, errorConnectionClosed) {
-				log.Printf("Client disconnected: %v", err)
-			} else {
+			if err.Error() != errorConnectionClosed.Error() {
 				log.Printf("Error handling command: %v", err)
 			}
+
 			break
 		}
 	}
