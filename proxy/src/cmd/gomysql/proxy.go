@@ -82,7 +82,6 @@ func (s *ProxyServer) Start(ctx context.Context) error {
 			log.Printf("Failed to accept connection: %v", err)
 			continue
 		}
-		defer conn.SetDeadline(time.Now())
 
 		s.wg.Add(1)
 		go s.handleConnection(ctx, conn)
@@ -93,9 +92,12 @@ func (s *ProxyServer) Start(ctx context.Context) error {
 
 // handleConnection processes a new client connection
 func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
-	defer s.wg.Done()
+	defer func() {
+		s.wg.Done()
+		conn.Close()
+	}()
 
-	client, err := s.atomPool.Load().GetConn(context.Background())
+	client, err := s.atomPool.Load().GetConn(ctx)
 	if err != nil {
 		log.Printf("Failed to get connection from pool: %v", err)
 		conn.Close()
@@ -140,6 +142,9 @@ func (s *ProxyServer) Shutdown(ctx context.Context) {
 		s.wg.Wait()
 		close(done)
 	}()
+
+	s.listener.Close()
+	s.atomPool.Load().Close()
 
 	select {
 	case <-done:

@@ -56,7 +56,7 @@ func (h *QueryHandler) HandleQuery(query string) (*mysql.Result, error) {
 	// Execute each query in order
 	var res *mysql.Result
 	for _, q := range queries {
-		trimQuery := strings.Trim(q, " ")
+		trimQuery := strings.TrimSpace(q)
 		if trimQuery == "" || trimQuery == "\n" {
 			continue
 		}
