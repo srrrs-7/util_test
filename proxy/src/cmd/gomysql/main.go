@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 )
 
 // Constants for environment variable names
@@ -96,9 +99,9 @@ func main() {
 		log.Panic("Failed to listen on proxy address: ", err)
 	}
 	defer l.Close()
-
 	log.Printf("MySQL proxy server successfully listening on %s", env.proxyAddr)
 
+	ctx, cancel := context.WithCancel(context.Background())
 	// Create and start the proxy server
 	proxyServer := NewProxyServer(
 		proxyConf,
@@ -106,7 +109,16 @@ func main() {
 		l,
 		&sync.WaitGroup{},
 	)
-	if err := proxyServer.Start(); err != nil {
+	go func(ctx context.Context, cancel context.CancelFunc) {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+		<-sigs
+		cancel()
+		log.Println("Received shutdown signal, shutting down...")
+		proxyServer.Shutdown(ctx)
+	}(ctx, cancel)
+
+	if err := proxyServer.Start(ctx); err != nil {
 		log.Panic("Failed to start proxy server: ", err)
 	}
 }

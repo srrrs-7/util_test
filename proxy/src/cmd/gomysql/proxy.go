@@ -7,11 +7,8 @@ import (
 	"log"
 	"log/slog"
 	"net"
-	"os"
-	"os/signal"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/go-mysql-org/go-mysql/client"
@@ -52,13 +49,13 @@ func NewProxyServer(pConf, tConf DBConfig, l net.Listener, wg *sync.WaitGroup) *
 		listenDbConf: pConf,
 		targetDbConf: tConf,
 		wg:           wg,
+		atomPool:     atomic.Pointer[client.Pool]{},
 	}
 }
 
 // Start starts the MySQL proxy server
-func (s *ProxyServer) Start() error {
-	go s.handleSignals()
-
+func (s *ProxyServer) Start(ctx context.Context) error {
+	// Create a connection pool to the target database
 	pool, err := client.NewPoolWithOptions(
 		s.targetDbConf.Addr,
 		s.targetDbConf.User,
@@ -71,10 +68,8 @@ func (s *ProxyServer) Start() error {
 	if err != nil {
 		return fmt.Errorf("failed to create connection pool: %w", err)
 	}
+	// Store the connection pool in the atomic pointer
 	s.atomPool.Store(pool)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	// Loop to accept connections
 	for {
@@ -87,6 +82,7 @@ func (s *ProxyServer) Start() error {
 			log.Printf("Failed to accept connection: %v", err)
 			continue
 		}
+		defer conn.SetDeadline(time.Now())
 
 		s.wg.Add(1)
 		go s.handleConnection(ctx, conn)
@@ -95,24 +91,9 @@ func (s *ProxyServer) Start() error {
 	return nil
 }
 
-// handleSignals handles OS signals for graceful shutdown
-func (s *ProxyServer) handleSignals() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
-	log.Println("Received shutdown signal, shutting down...")
-	s.Shutdown()
-}
-
 // handleConnection processes a new client connection
 func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 	defer s.wg.Done()
-
-	go func() {
-		<-ctx.Done()
-		log.Printf("Shutting down connection from %s", conn.RemoteAddr().String())
-		conn.SetDeadline(time.Now())
-	}()
 
 	client, err := s.atomPool.Load().GetConn(context.Background())
 	if err != nil {
@@ -147,7 +128,13 @@ func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 }
 
 // Shutdown gracefully shuts down the proxy server
-func (s *ProxyServer) Shutdown() {
+func (s *ProxyServer) Shutdown(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+		log.Println("Shutdown context done")
+
+	}
+
 	done := make(chan struct{})
 	go func() {
 		s.wg.Wait()
