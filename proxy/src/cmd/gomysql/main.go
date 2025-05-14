@@ -115,10 +115,12 @@ func main() {
 		<-sigs
 		cancel()
 		log.Println("Received shutdown signal, shutting down...")
-		proxyServer.Shutdown(ctx)
+		proxyServer.Shutdown()
 	}(ctx, cancel)
 
 	if err := proxyServer.Start(ctx); err != nil {
 		log.Panic("Failed to start proxy server: ", err)
 	}
+	
+	<-ctx.Done()
 }
