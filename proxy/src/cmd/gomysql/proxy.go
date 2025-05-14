@@ -130,13 +130,9 @@ func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 }
 
 // Shutdown gracefully shuts down the proxy server
-func (s *ProxyServer) Shutdown(ctx context.Context) {
-	select {
-	case <-ctx.Done():
-		log.Println("Shutdown context done")
-		if err := s.listener.Close(); err != nil {
-			log.Printf("Failed to close listener: %v", err)
-		}
+func (s *ProxyServer) Shutdown() {
+	if err := s.listener.Close(); err != nil {
+		log.Printf("Failed to close listener: %v", err)
 	}
 
 	done := make(chan struct{})
@@ -145,7 +141,9 @@ func (s *ProxyServer) Shutdown(ctx context.Context) {
 		close(done)
 	}()
 
-	s.atomPool.Load().Close()
+	if err := s.atomPool.Load().Close(); err != nil {
+		log.Printf("Failed to close connectioin pool: %v", err)
+	}
 
 	select {
 	case <-done:
