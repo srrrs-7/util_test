@@ -109,14 +109,14 @@ func main() {
 		l,
 		&sync.WaitGroup{},
 	)
-	go func(ctx context.Context, cancel context.CancelFunc) {
+	go func(cancel context.CancelFunc) {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 		<-sigs
-		cancel()
+		defer cancel()
 		log.Println("Received shutdown signal, shutting down...")
 		proxyServer.Shutdown()
-	}(ctx, cancel)
+	}(cancel)
 
 	if err := proxyServer.Start(ctx); err != nil {
 		log.Panic("Failed to start proxy server: ", err)
