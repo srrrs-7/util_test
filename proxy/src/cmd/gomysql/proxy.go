@@ -141,9 +141,7 @@ func (s *ProxyServer) Shutdown() {
 		close(done)
 	}()
 
-	if err := s.atomPool.Load().Close(); err != nil {
-		log.Printf("Failed to close connectioin pool: %v", err)
-	}
+	s.atomPool.Load().Close()
 
 	select {
 	case <-done:

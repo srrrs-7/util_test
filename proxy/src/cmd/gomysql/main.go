@@ -121,6 +121,6 @@ func main() {
 	if err := proxyServer.Start(ctx); err != nil {
 		log.Panic("Failed to start proxy server: ", err)
 	}
-	
+
 	<-ctx.Done()
 }
