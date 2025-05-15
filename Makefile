@@ -100,7 +100,6 @@ rustworker:
 
 node:
 	docker compose build node
-
 	docker compose run --rm node bash
 
 deno:
@@ -117,12 +116,10 @@ deno-server:
 
 php:
 	docker compose build php
-
 	docker compose run --rm php bash
 
 linux:
 	docker compose build linux
-
 	docker compose run --rm linux bash
 
 k6:
@@ -201,43 +198,30 @@ k8s-del-pod:
 
 k8s-nginx:
 	kubectl run nginx --image nginx:latest
-
 	kubectl expose pod nginx --type=NodePort --port=80
 
 k8s-mysql:
 	kubectl apply -f ./k8s/mysql.yaml
-
 	kubectl get pvc
-
 	kubectl get pv
-
 	kubectl get pods | grep mysql | awk '{print $$1}' | xargs kubectl describe pod
 
 k8s-del-mysql:
 	kubectl delete deployments mysql
-
 	kubectl delete service mysql
-
 	kubectl delete pvc mysql-pvc
-
 	kubectl delete pv mysql-pv
 
 k8s-postgres:
 	kubectl apply -f ./k8s/postgres.yaml
-
 	kubectl get pvc
-
 	kubectl get pv
-
 	kubectl get pods | grep postgres | awk '{print $$1}' | xargs kubectl describe pod
 
 k8s-del-postgres:
 	kubectl delete deployments postgresql
-
 	kubectl delete service postgresql
-
 	kubectl delete pvc postgres-pvc
-
 	kubectl delete pv postgres-pv
 
 
