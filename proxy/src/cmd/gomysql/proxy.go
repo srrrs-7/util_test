@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"sync"
@@ -15,17 +14,25 @@ import (
 	"github.com/go-mysql-org/go-mysql/server"
 )
 
-// Default timeout for graceful shutdown
+// Connection pool configuration constants
 const (
-	MinConnections         = 16
-	MaxConnections         = 64
-	MaxIdleConnections     = 32
+	MinConnections     = 16
+	MaxConnections     = 64
+	MaxIdleConnections = 32
+	PoolPingTimeout    = 5 * time.Second
+)
+
+// Timeout constants
+const (
 	DefaultShutdownTimeout = 30 * time.Second
 )
 
-var errorConnectionClosed = errors.New("connection closed")
+// Common error definitions
+var (
+	ErrConnectionClosed = errors.New("connection closed")
+)
 
-// DBConfig is a struct that holds database connection configuration information
+// DBConfig holds database connection configuration
 type DBConfig struct {
 	DBName string
 	Addr   string
@@ -56,18 +63,11 @@ func NewProxyServer(pConf, tConf DBConfig, l net.Listener, wg *sync.WaitGroup) *
 // Start starts the MySQL proxy server
 func (s *ProxyServer) Start(ctx context.Context) error {
 	// Create a connection pool to the target database
-	pool, err := client.NewPoolWithOptions(
-		s.targetDbConf.Addr,
-		s.targetDbConf.User,
-		s.targetDbConf.Pass,
-		s.targetDbConf.DBName,
-		client.WithPoolLimits(MinConnections, MaxConnections, MaxIdleConnections),
-		client.WithLogger(slog.Default()),
-		client.WithNewPoolPingTimeout(5*time.Second),
-	)
+	pool, err := s.createConnectionPool()
 	if err != nil {
-		return fmt.Errorf("failed to create connection pool: %w", err)
+		return err
 	}
+
 	// Store the connection pool in the atomic pointer
 	s.atomPool.Store(pool)
 
@@ -76,10 +76,10 @@ func (s *ProxyServer) Start(ctx context.Context) error {
 		conn, err := s.listener.Accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				log.Println("Listener closed, exiting accept loop")
+				slog.Info("Listener closed, exiting accept loop")
 				break
 			}
-			log.Printf("Failed to accept connection: %v", err)
+			slog.Error("Failed to accept connection", "error", err)
 			continue
 		}
 
@@ -90,6 +90,23 @@ func (s *ProxyServer) Start(ctx context.Context) error {
 	return nil
 }
 
+// createConnectionPool initializes the connection pool to the target database
+func (s *ProxyServer) createConnectionPool() (*client.Pool, error) {
+	pool, err := client.NewPoolWithOptions(
+		s.targetDbConf.Addr,
+		s.targetDbConf.User,
+		s.targetDbConf.Pass,
+		s.targetDbConf.DBName,
+		client.WithPoolLimits(MinConnections, MaxConnections, MaxIdleConnections),
+		client.WithLogger(slog.Default()),
+		client.WithNewPoolPingTimeout(PoolPingTimeout),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create connection pool: %w", err)
+	}
+	return pool, nil
+}
+
 // handleConnection processes a new client connection
 func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 	defer func() {
@@ -97,33 +114,48 @@ func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 		conn.Close()
 	}()
 
-	client, err := s.atomPool.Load().GetConn(ctx)
+	dbConn, err := s.getDBConnection(ctx)
 	if err != nil {
-		log.Printf("Failed to get connection from pool: %v", err)
-		conn.Close()
+		slog.Error("Failed to get connection from pool", "error", err)
 		return
 	}
-	defer s.atomPool.Load().PutConn(client)
+	defer s.atomPool.Load().PutConn(dbConn)
 
-	// Create MySQL server connection
-	serverConn, err := server.NewDefaultServer().NewConn(
+	serverConn, err := s.createServerConnection(conn, dbConn)
+	if err != nil {
+		slog.Error("Failed to create server connection", "error", err)
+		return
+	}
+
+	s.processCommands(serverConn)
+}
+
+// getDBConnection retrieves a connection from the pool
+func (s *ProxyServer) getDBConnection(ctx context.Context) (*client.Conn, error) {
+	pool := s.atomPool.Load()
+	if pool == nil {
+		return nil, errors.New("connection pool not initialized")
+	}
+	return pool.GetConn(ctx)
+}
+
+// createServerConnection sets up the MySQL server connection
+func (s *ProxyServer) createServerConnection(conn net.Conn, dbConn *client.Conn) (*server.Conn, error) {
+	return server.NewDefaultServer().NewConn(
 		conn,
 		s.listenDbConf.User,
 		s.listenDbConf.Pass,
-		NewQueryHandler(client),
+		NewQueryHandler(dbConn),
 	)
-	if err != nil {
-		log.Printf("Failed to create server connection: %v", err)
-		return
-	}
+}
 
-	// Process commands until client disconnects
+// processCommands handles MySQL commands until the client disconnects
+func (s *ProxyServer) processCommands(serverConn *server.Conn) {
 	for {
 		if err := serverConn.HandleCommand(); err != nil {
-			if err.Error() != errorConnectionClosed.Error() {
-				log.Printf("Error handling command: %v", err)
+			if err.Error() != ErrConnectionClosed.Error() {
+				slog.Error("Error handling command", "error", err)
 			}
-
 			break
 		}
 	}
@@ -132,7 +164,7 @@ func (s *ProxyServer) handleConnection(ctx context.Context, conn net.Conn) {
 // Shutdown gracefully shuts down the proxy server
 func (s *ProxyServer) Shutdown() {
 	if err := s.listener.Close(); err != nil {
-		log.Printf("Failed to close listener: %v", err)
+		slog.Error("Failed to close listener", "error", err)
 	}
 
 	done := make(chan struct{})
@@ -141,12 +173,14 @@ func (s *ProxyServer) Shutdown() {
 		close(done)
 	}()
 
-	s.atomPool.Load().Close()
+	if pool := s.atomPool.Load(); pool != nil {
+		pool.Close()
+	}
 
 	select {
 	case <-done:
-		log.Println("Server shutdown complete")
+		slog.Info("Server shutdown complete")
 	case <-time.After(DefaultShutdownTimeout):
-		log.Println("Server shutdown timed out")
+		slog.Info("Server shutdown timed out")
 	}
 }

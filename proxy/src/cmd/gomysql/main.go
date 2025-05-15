@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 )
 
 // Constants for environment variable names
@@ -21,106 +22,145 @@ const (
 	EnvTestDBUser = "TEST_DB_USER"
 	EnvTestDBPass = "TEST_DB_PASS"
 	EnvTestDBName = "TEST_DB_NAME"
+
+	// Timeout for graceful shutdown
+	ShutdownTimeout = 30 * time.Second
 )
 
-// Env is a struct that holds database connection information loaded from environment variables
-type Env struct {
-	proxyAddr  string
-	proxyUser  string
-	proxyPass  string
-	testDBAddr string
-	testDBUser string
-	testDBPass string
-	testDBName string
+// Config is a struct that holds database connection information loaded from environment variables
+type Config struct {
+	proxy  DBConfig
+	testDB DBConfig
 }
 
-// newEnv loads settings from environment variables and generates an Env struct
-func newEnv() Env {
-	return Env{
-		proxyAddr:  os.Getenv(EnvProxyAddr),
-		proxyUser:  os.Getenv(EnvProxyUser),
-		proxyPass:  os.Getenv(EnvProxyPass),
-		testDBAddr: os.Getenv(EnvTestDBAddr),
-		testDBUser: os.Getenv(EnvTestDBUser),
-		testDBPass: os.Getenv(EnvTestDBPass),
-		testDBName: os.Getenv(EnvTestDBName),
+// loadConfig loads settings from environment variables and returns a Config struct
+func loadConfig() (*Config, error) {
+	// Load proxy config
+	proxyAddr := os.Getenv(EnvProxyAddr)
+	proxyUser := os.Getenv(EnvProxyUser)
+	proxyPass := os.Getenv(EnvProxyPass)
+
+	// Load test DB config
+	testDBAddr := os.Getenv(EnvTestDBAddr)
+	testDBUser := os.Getenv(EnvTestDBUser)
+	testDBPass := os.Getenv(EnvTestDBPass)
+	testDBName := os.Getenv(EnvTestDBName)
+
+	// Validate required fields
+	if proxyAddr == "" {
+		return nil, fmt.Errorf("missing required environment variable: %s", EnvProxyAddr)
 	}
+	if proxyUser == "" {
+		return nil, fmt.Errorf("missing required environment variable: %s", EnvProxyUser)
+	}
+	if proxyPass == "" {
+		return nil, fmt.Errorf("missing required environment variable: %s", EnvProxyPass)
+	}
+	if testDBAddr == "" {
+		return nil, fmt.Errorf("missing required environment variable: %s", EnvTestDBAddr)
+	}
+	if testDBUser == "" {
+		return nil, fmt.Errorf("missing required environment variable: %s", EnvTestDBUser)
+	}
+	if testDBPass == "" {
+		return nil, fmt.Errorf("missing required environment variable: %s", EnvTestDBPass)
+	}
+	if testDBName == "" {
+		return nil, fmt.Errorf("missing required environment variable: %s", EnvTestDBName)
+	}
+
+	return &Config{
+		proxy: DBConfig{
+			Addr: proxyAddr,
+			User: proxyUser,
+			Pass: proxyPass,
+		},
+		testDB: DBConfig{
+			Addr:   testDBAddr,
+			User:   testDBUser,
+			Pass:   testDBPass,
+			DBName: testDBName,
+		},
+	}, nil
 }
 
-func (e Env) validate() error {
-	if e.proxyAddr == "" {
-		return fmt.Errorf("missing required environment variable: %s", EnvProxyAddr)
+// setupNetListener creates a TCP listener for the proxy server
+func setupNetListener(addr string) (net.Listener, error) {
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to listen on proxy address: %w", err)
 	}
-	if e.proxyUser == "" {
-		return fmt.Errorf("missing required environment variable: %s", EnvProxyUser)
-	}
-	if e.proxyPass == "" {
-		return fmt.Errorf("missing required environment variable: %s", EnvProxyPass)
-	}
-	if e.testDBAddr == "" {
-		return fmt.Errorf("missing required environment variable: %s", EnvTestDBAddr)
-	}
-	if e.testDBUser == "" {
-		return fmt.Errorf("missing required environment variable: %s", EnvTestDBUser)
-	}
-	if e.testDBPass == "" {
-		return fmt.Errorf("missing required environment variable: %s", EnvTestDBPass)
-	}
-	if e.testDBName == "" {
-		return fmt.Errorf("missing required environment variable: %s", EnvTestDBName)
-	}
+	return l, nil
+}
 
-	return nil
+// setupSignalHandler creates a context that is canceled when the process receives a termination signal
+func setupSignalHandler(cancel context.CancelFunc, server *ProxyServer) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigs
+		slog.Info("Received shutdown signal", "signal", sig)
+		cancel()
+		server.Shutdown()
+	}()
 }
 
 // main is the entry point of the application
 func main() {
-	// Load settings from environment variables
-	env := newEnv()
-	if err := env.validate(); err != nil {
-		log.Panic("Failed to load environment variables: ", err)
-	}
+	// Configure structured logging with JSON format
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})))
 
-	proxyConf := DBConfig{
-		Addr: env.proxyAddr,
-		User: env.proxyUser,
-		Pass: env.proxyPass,
-	}
-
-	testDBConf := DBConfig{
-		Addr:   env.testDBAddr,
-		User:   env.testDBUser,
-		Pass:   env.testDBPass,
-		DBName: env.testDBName,
-	}
-
-	l, err := net.Listen("tcp", env.proxyAddr)
+	// Load configuration from environment variables
+	config, err := loadConfig()
 	if err != nil {
-		log.Panic("Failed to listen on proxy address: ", err)
+		slog.Error("Failed to load configuration", "error", err)
+		panic(fmt.Sprintf("Failed to load configuration: %v", err))
 	}
-	defer l.Close()
-	log.Printf("MySQL proxy server successfully listening on %s", env.proxyAddr)
 
+	// Set up network listener
+	listener, err := setupNetListener(config.proxy.Addr)
+	if err != nil {
+		slog.Error("Failed to set up network listener", "error", err)
+		panic(fmt.Sprintf("Failed to set up network listener: %v", err))
+	}
+	defer listener.Close()
+
+	slog.Info("MySQL proxy server successfully listening", "addr", config.proxy.Addr)
+
+	// Create context with cancellation for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
-	// Create and start the proxy server
-	proxyServer := NewProxyServer(
-		proxyConf,
-		testDBConf,
-		l,
-		&sync.WaitGroup{},
-	)
-	go func(cancel context.CancelFunc) {
-		sigs := make(chan os.Signal, 1)
-		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-		<-sigs
-		defer cancel()
-		log.Println("Received shutdown signal, shutting down...")
-		proxyServer.Shutdown()
-	}(cancel)
+	defer cancel()
 
+	// Create and start the proxy server
+	wg := &sync.WaitGroup{}
+	proxyServer := NewProxyServer(
+		config.proxy,
+		config.testDB,
+		listener,
+		wg,
+	)
+
+	// Set up signal handler for graceful shutdown
+	setupSignalHandler(cancel, proxyServer)
+
+	// Start the proxy server
 	if err := proxyServer.Start(ctx); err != nil {
-		log.Panic("Failed to start proxy server: ", err)
+		slog.Error("Failed to start proxy server", "error", err)
+		panic(fmt.Sprintf("Failed to start proxy server: %v", err))
 	}
 
+	// Wait for context cancellation (triggered by signal handler)
 	<-ctx.Done()
+
+	// Wait for a grace period for server to shut down
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), ShutdownTimeout)
+	defer shutdownCancel()
+
+	select {
+	case <-shutdownCtx.Done():
+		slog.Info("Shutdown completed")
+	}
 }

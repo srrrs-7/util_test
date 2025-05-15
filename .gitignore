@@ -17,3 +17,5 @@ log
 wasm_pkg
 
 .php-cs-fixer.cache
+# SpecStory explanation file
+.specstory/.what-is-this.md
