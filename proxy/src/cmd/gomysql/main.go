@@ -154,13 +154,4 @@ func main() {
 
 	// Wait for context cancellation (triggered by signal handler)
 	<-ctx.Done()
-
-	// Wait for a grace period for server to shut down
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), ShutdownTimeout)
-	defer shutdownCancel()
-
-	select {
-	case <-shutdownCtx.Done():
-		slog.Info("Shutdown completed")
-	}
 }
