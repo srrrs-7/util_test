@@ -1,0 +1,7 @@
+\Log::info
+\Log::info
+\Log::info
+\Log::info
+this->delete
+this->delete
+this->delete

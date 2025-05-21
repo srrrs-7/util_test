@@ -22,6 +22,13 @@ class BatchJob implements ShouldQueue
      */
     public function handle(): void
     {
-        //
+        // Log the job completion
+        \Log::info('Batch job completed successfully.');
+        \Log::info('Batch job completed successfully.');
+        \Log::info('Batch job completed successfully.');
+        \Log::info('Batch job completed successfully.');
+        // $this->delete(); // Delete the job from the queue
+        // $this->delete(); // Delete the job from the queue
+        // $this->delete(); // Delete the job from the queue
     }
 }
