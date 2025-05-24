@@ -1,12 +1,14 @@
 package lib
 
 func TwoSum(nums []int, target int) []int {
-	m := make(map[int]int, 0)
-	for idx, num := range nums {
-		if requireIdx, exists := m[target-num]; exists {
-			return []int{requireIdx, idx}
+	m := make(map[int]int, len(nums))
+
+	for i, n := range nums {
+		diff := target - n
+		if v, ok := m[diff]; ok && v != i {
+			return []int{v, i}
 		}
-		m[num] = idx
+		m[n] = i
 	}
-	return []int{}
+	return nil
 }
