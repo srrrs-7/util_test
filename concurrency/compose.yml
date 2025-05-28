@@ -1,0 +1,12 @@
+services:
+  api:
+    image: golang:1.24
+
+  worker:
+    image: golang:1.24
+
+  sqs:
+    image: softwaremill/elasticmq
+    ports:
+      - 9324:9324
+      - 9325:9325
