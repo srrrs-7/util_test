@@ -1,16 +1,22 @@
 package domain
 
-import "concurrency/pkg/utilerror"
+import (
+	"fmt"
+)
 
-type UserID int
+type UserID string
+
+func (u UserID) String() string {
+	return string(u)
+}
 
 type User struct {
 	ID UserID `json:"user_id"`
 }
 
-func (u User) validate() error {
-	if u.ID <= 0 {
-		return utilerror.ErrInvalidUserID
+func (u User) Validate() error {
+	if u.ID == "" {
+		return fmt.Errorf("invalid user ID")
 	}
 
 	return nil

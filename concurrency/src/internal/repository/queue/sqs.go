@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"concurrency/internal/domain"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,16 +13,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
-type WorkerFunc[T any] func(ctx context.Context, msgId string, msg T) error
+type WorkerFunc func(ctx context.Context, msgId string, msg string) error
 
-type SQSHandler[T any] struct {
+type SQSHandler struct {
 	client   *sqs.Client
 	queueURL string
 	timeout  time.Duration
-	workFunc WorkerFunc[T]
+	workFunc WorkerFunc
 }
 
-func NewSQSHandler[T any](queueUrl string, timeout time.Duration, workFunc WorkerFunc[T]) (*SQSHandler[T], error) {
+func NewSQSHandler(queueUrl string, timeout time.Duration, workFunc WorkerFunc) (*SQSHandler, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return nil, fmt.Errorf("loading AWS config: %w", err)
@@ -36,7 +37,7 @@ func NewSQSHandler[T any](queueUrl string, timeout time.Duration, workFunc Worke
 		return nil, fmt.Errorf("getting queue URL: %w", err)
 	}
 
-	return &SQSHandler[T]{
+	return &SQSHandler{
 		client:   client,
 		queueURL: *result.QueueUrl,
 		timeout:  timeout,
@@ -44,7 +45,7 @@ func NewSQSHandler[T any](queueUrl string, timeout time.Duration, workFunc Worke
 	}, nil
 }
 
-func (h *SQSHandler[T]) Enqueue(ctx context.Context, messageBody T) (string, error) {
+func (h *SQSHandler) Enqueue(ctx context.Context, messageBody string) (domain.QueueID, error) {
 	messageBodyBytes, err := json.Marshal(messageBody)
 	if err != nil {
 		return "", fmt.Errorf("marshalling message: %w", err)
@@ -58,10 +59,10 @@ func (h *SQSHandler[T]) Enqueue(ctx context.Context, messageBody T) (string, err
 		return "", fmt.Errorf("sending message: %w", err)
 	}
 
-	return *result.MessageId, nil
+	return domain.QueueID(*result.MessageId), nil
 }
 
-func (h *SQSHandler[T]) Dequeue(ctx context.Context) error {
+func (h *SQSHandler) Dequeue(ctx context.Context) error {
 	result, err := h.client.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(h.queueURL),
 		MaxNumberOfMessages: int32(1),
@@ -73,14 +74,13 @@ func (h *SQSHandler[T]) Dequeue(ctx context.Context) error {
 
 	if len(result.Messages) == 0 {
 		h.Dequeue(ctx)
+		time.Sleep(3 * time.Second)
 		return fmt.Errorf("no messages in the queue")
 	}
 
 	msg := result.Messages[0]
-	slog.Info("received message", "messageId", *msg.MessageId)
 
-	ticker := time.NewTicker(4 * time.Minute)
-	defer ticker.Stop()
+	ticker := time.NewTicker(1 * time.Second)
 	go func(ticker *time.Ticker) {
 		for range ticker.C {
 			if err := h.extendVisibility(ctx, *msg.ReceiptHandle, int32(h.timeout.Seconds())); err != nil {
@@ -91,25 +91,21 @@ func (h *SQSHandler[T]) Dequeue(ctx context.Context) error {
 	}(ticker)
 
 	defer func() {
+		ticker.Stop()
 		if err := h.deleteMessage(ctx, *result.Messages[0].ReceiptHandle); err != nil {
 			slog.Error("deleting message", "error", err.Error())
 			return
 		}
 	}()
 
-	var msgBody T
-	if err := json.Unmarshal([]byte(*msg.Body), &msgBody); err != nil {
-		return fmt.Errorf("unmarshalling message: %w", err)
-	}
-
-	if err := h.workFunc(ctx, *msg.MessageId, msgBody); err != nil {
+	if err := h.workFunc(ctx, *msg.MessageId, *msg.Body); err != nil {
 		return fmt.Errorf("processing message: %w", err)
 	}
 
 	return nil
 }
 
-func (h *SQSHandler[T]) deleteMessage(ctx context.Context, receiptHandle string) error {
+func (h *SQSHandler) deleteMessage(ctx context.Context, receiptHandle string) error {
 	_, err := h.client.DeleteMessage(ctx, &sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(h.queueURL),
 		ReceiptHandle: aws.String(receiptHandle),
@@ -121,7 +117,7 @@ func (h *SQSHandler[T]) deleteMessage(ctx context.Context, receiptHandle string)
 	return nil
 }
 
-func (h *SQSHandler[T]) extendVisibility(ctx context.Context, receiptHandle string, visibilityTimeout int32) error {
+func (h *SQSHandler) extendVisibility(ctx context.Context, receiptHandle string, visibilityTimeout int32) error {
 	_, err := h.client.ChangeMessageVisibility(ctx, &sqs.ChangeMessageVisibilityInput{
 		QueueUrl:          aws.String(h.queueURL),
 		ReceiptHandle:     aws.String(receiptHandle),

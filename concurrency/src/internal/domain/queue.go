@@ -1,6 +1,6 @@
 package domain
 
-import "concurrency/pkg/utilerror"
+import "fmt"
 
 type QueueID string
 
@@ -13,7 +13,7 @@ func (q QueueID) String() string {
 
 func (q QueueID) validate() error {
 	if q == "" {
-		return utilerror.ErrInvalidQueueID
+		return fmt.Errorf("queue ID cannot be empty")
 	}
 	return nil
 }
