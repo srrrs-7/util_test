@@ -13,16 +13,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
-type WorkerFunc func(ctx context.Context, msgId string, msg string) error
+type Worker interface {
+	worker(context.Context, string, string) error
+}
 
 type SQSHandler struct {
 	client   *sqs.Client
 	queueURL string
 	timeout  time.Duration
-	workFunc WorkerFunc
+	work     Worker
 }
 
-func NewSQSHandler(queueUrl string, timeout time.Duration, workFunc WorkerFunc) (*SQSHandler, error) {
+func NewSQSHandler(queueUrl string, timeout time.Duration, w Worker) (*SQSHandler, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return nil, fmt.Errorf("loading AWS config: %w", err)
@@ -41,7 +43,7 @@ func NewSQSHandler(queueUrl string, timeout time.Duration, workFunc WorkerFunc) 
 		client:   client,
 		queueURL: *result.QueueUrl,
 		timeout:  timeout,
-		workFunc: workFunc,
+		work:     w,
 	}, nil
 }
 
@@ -98,7 +100,7 @@ func (h *SQSHandler) Dequeue(ctx context.Context) error {
 		}
 	}()
 
-	if err := h.workFunc(ctx, *msg.MessageId, *msg.Body); err != nil {
+	if err := h.work.worker(ctx, *msg.MessageId, *msg.Body); err != nil {
 		return fmt.Errorf("processing message: %w", err)
 	}
 

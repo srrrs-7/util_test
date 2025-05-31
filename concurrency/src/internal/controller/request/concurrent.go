@@ -1,25 +1,28 @@
 package request
 
-import "fmt"
+import (
+	"concurrency/internal/domain"
+	"fmt"
+)
 
 type CreateReq struct {
 	UserID string `json:"user_id"`
 }
 
-func (c *CreateReq) Validate() error {
+func (c *CreateReq) Validate() (*domain.User, error) {
 	if c.UserID == "" {
-		return fmt.Errorf("user ID cannot be empty")
+		return nil, fmt.Errorf("user ID cannot be empty")
 	}
-	return nil
+	return &domain.User{ID: domain.UserID(c.UserID)}, nil
 }
 
 type CheckReq struct {
-	ID string `json:"id"`
+	QueueID string `json:"queue_id"`
 }
 
-func (c *CheckReq) Validate() error {
-	if c.ID == "" {
-		return fmt.Errorf("ID cannot be empty")
+func (c *CheckReq) Validate() (domain.QueueID, error) {
+	if c.QueueID == "" {
+		return "", fmt.Errorf("ID cannot be empty")
 	}
-	return nil
+	return domain.QueueID(c.QueueID), nil
 }
