@@ -1,8 +1,8 @@
 package service
 
 import (
-	"concurrency/internal/controller/request"
-	"concurrency/internal/domain"
+	"concurrency/controller/request"
+	"concurrency/domain"
 	"context"
 	"fmt"
 	"time"

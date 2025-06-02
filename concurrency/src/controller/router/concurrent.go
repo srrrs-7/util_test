@@ -1,10 +1,10 @@
 package router
 
 import (
-	"concurrency/internal/controller/request"
-	"concurrency/internal/controller/response"
-	"concurrency/internal/service"
+	"concurrency/controller/request"
+	"concurrency/controller/response"
 	"concurrency/pkg/utilhttp"
+	"concurrency/service"
 	"log/slog"
 	"net/http"
 )

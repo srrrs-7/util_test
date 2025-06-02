@@ -1,7 +1,7 @@
 package service
 
 import (
-	"concurrency/internal/domain"
+	"concurrency/domain"
 	"context"
 	"time"
 )

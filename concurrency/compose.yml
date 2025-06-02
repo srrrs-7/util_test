@@ -1,12 +1,21 @@
 services:
   api:
-    image: golang:1.24
+    build:
+      context: .
+      dockerfile: ./concurrency/.images/api.Dockerfile
 
   worker:
-    image: golang:1.24
+    build:
+      context: .
+      dockerfile: ./concurrency/.images/worker.Dockerfile
 
   sqs:
     image: softwaremill/elasticmq
     ports:
       - 9324:9324
       - 9325:9325
+
+  cache:
+    image: redis:8.0
+    ports:
+      - 6379:6379

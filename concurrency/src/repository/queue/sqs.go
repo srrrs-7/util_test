@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"concurrency/internal/domain"
+	"concurrency/domain"
 	"context"
 	"encoding/json"
 	"fmt"

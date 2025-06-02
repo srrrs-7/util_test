@@ -1,7 +1,7 @@
 package http
 
 import (
-	"concurrency/internal/controller/router"
+	"concurrency/controller/router"
 	"context"
 	"net/http"
 

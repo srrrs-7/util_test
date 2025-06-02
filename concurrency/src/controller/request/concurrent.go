@@ -1,7 +1,7 @@
 package request
 
 import (
-	"concurrency/internal/domain"
+	"concurrency/domain"
 	"fmt"
 )
 
