@@ -1,0 +1,8 @@
+services:
+  kind:
+    build:
+      dockerfile: ./.images/kind/Dockerfile
+    privileged: true
+    tty: true
+    volumes:
+      - ./src:/src
