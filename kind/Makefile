@@ -23,7 +23,7 @@ delete:
 	docker compose exec cluster-1 kind delete cluster
 
 exec:
-	docker compose exec cluster-1 bash
+	docker compose exec cluster-1 sh
 
 get-all:
 	docker compose exec cluster-1 kubectl get all -A
@@ -34,7 +34,7 @@ get-all:
 get-nodes:
 	docker compose exec cluster-1 kubectl get nodes -o json
 
-get-nodes:
+get-nodes-detail:
 	docker compose exec cluster-1 kubectl get nodes -o wide
 
 # about pods commands
