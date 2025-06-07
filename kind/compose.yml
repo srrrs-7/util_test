@@ -1,5 +1,12 @@
 services:
-  kind:
+  cluster-1:
+    build:
+      dockerfile: ./.images/kind/Dockerfile
+    privileged: true
+    tty: true
+    volumes:
+      - ./src:/src
+  cluster-2:
     build:
       dockerfile: ./.images/kind/Dockerfile
     privileged: true

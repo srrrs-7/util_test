@@ -17,43 +17,43 @@ cluster-logs:
 .PHONY: cluster delete exec get-all
 
 cluster:
-	docker compose exec kind kind create cluster --config /src/cluster/config.yaml
+	docker compose exec cluster-1 kind create cluster --config /src/cluster/config.yaml
 
 delete:
-	docker compose exec kind kind delete cluster
+	docker compose exec cluster-1 kind delete cluster
 
 exec:
-	docker compose exec kind bash
+	docker compose exec cluster-1 bash
 
 get-all:
-	docker compose exec kind kubectl get all -A
+	docker compose exec cluster-1 kubectl get all -A
 
 # about node commands
 .PHONY: get-nodes get-nodes-detail
 
 get-nodes:
-	docker compose exec kind kubectl get nodes -o json
+	docker compose exec cluster-1 kubectl get nodes -o json
 
 get-nodes:
-	docker compose exec kind kubectl get nodes -o wide
+	docker compose exec cluster-1 kubectl get nodes -o wide
 
 # about pods commands
 .PHONY: get-pods get-pods-detail apply-pod describe-deploy describe-pod top-pods
 
 get-pods:
-	docker compose exec kind kubectl get pods -o json
+	docker compose exec cluster-1 kubectl get pods -o json
 
 get-pods-detail:
-	docker compose exec kind kubectl get pods -o wide
+	docker compose exec cluster-1 kubectl get pods -o wide
 
 apply-pod:
-	docker compose exec kind kubectl apply -f /src/pods/nginx.yaml
+	docker compose exec cluster-1 kubectl apply -f /src/pods/nginx.yaml
 
 describe-deploy:
-	docker compose exec kind kubectl describe deployment nginx-deployment
+	docker compose exec cluster-1 kubectl describe deployment nginx-deployment
 
 describe-pod:
-	docker compose exec kind kubectl describe pod -l app=nginx
+	docker compose exec cluster-1 kubectl describe pod -l app=nginx
 
 top-pods:
-	docker compose exec kind kubectl top pods -l app=nginx
+	docker compose exec cluster-1 kubectl top pods -l app=nginx
