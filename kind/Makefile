@@ -6,6 +6,7 @@ cluster-up:
 
 cluster-build:
 	docker compose build
+	docker image ls | grep none | awk '{print $$3}' | xargs docker rmi
 
 cluster-down:
 	docker compose down
@@ -57,3 +58,12 @@ describe-pod:
 
 top-pods:
 	docker compose exec cluster-1 kubectl top pods -l app=nginx
+
+# init scripts
+.PHONY: cluster-1 cluster-2
+
+cluster-1:
+	docker compose exec cluster-1 /src/scripts/init.sh
+
+cluster-2:
+	docker compose exec cluster-2 /src/scripts/init.sh

@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.38.5
 	github.com/go-chi/chi v1.5.5
+	github.com/goccy/go-json v0.10.5
 	github.com/redis/go-redis/v9 v9.9.0
 )
 

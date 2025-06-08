@@ -5,11 +5,11 @@ services:
     privileged: true
     tty: true
     volumes:
-      - ./src:/src
+      - ./src/cluster-1:/src
   cluster-2:
     build:
       dockerfile: ./.images/kind/Dockerfile
     privileged: true
     tty: true
     volumes:
-      - ./src:/src
+      - ./src/cluster-2:/src

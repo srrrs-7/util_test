@@ -1,9 +1,10 @@
 package utilhttp
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 func ResponseOk[T any](w http.ResponseWriter, msg T) {

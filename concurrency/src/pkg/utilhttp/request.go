@@ -1,8 +1,9 @@
 package utilhttp
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 func GetRequestJsonBody[T any](r *http.Request) (T, error) {

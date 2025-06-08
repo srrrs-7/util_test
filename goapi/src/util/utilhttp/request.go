@@ -1,10 +1,11 @@
 package utilhttp
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 func RequestUrlParam[T comparable](req *http.Request, key string) (T, error) {
