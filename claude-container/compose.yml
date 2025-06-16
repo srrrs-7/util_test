@@ -1,0 +1,8 @@
+services:
+  claude:
+    build:
+      dockerfile: ./.images/sandbox.Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - ./src:/src
