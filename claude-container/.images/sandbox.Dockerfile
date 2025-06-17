@@ -10,3 +10,5 @@ RUN apt update && \
 WORKDIR /src
 
 RUN bun install -g @anthropic-ai/claude-code
+
+CMD [ "sleep", "infinity" ]

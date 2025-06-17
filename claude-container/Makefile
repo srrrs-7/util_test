@@ -1,4 +1,7 @@
-PHONY: claude
+PHONY: up claude
+
+up:
+	docker compose up -d cluade
 
 claude:
-	docker compose run --rm claude bash
+	docker compose exec claude bash
