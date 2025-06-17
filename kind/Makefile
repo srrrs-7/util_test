@@ -1,4 +1,6 @@
-# cluster commands for kind using Docker Compose
+####################################################
+## cluster commands for kind using Docker Compose ##
+####################################################
 .PHONY: cluster-up cluster-build cluster-down cluster-logs
 
 cluster-up:
@@ -14,7 +16,9 @@ cluster-down:
 cluster-logs:
 	docker compose logs -f
 
-# Commands to interact with the cluster
+###########################################
+## Commands to interact with the cluster ##
+###########################################
 .PHONY: cluster delete exec get-all
 
 cluster:
@@ -29,7 +33,9 @@ exec:
 get-all:
 	docker compose exec cluster-1 kubectl get all -A
 
-# about node commands
+#########################
+## about node commands ##
+#########################
 .PHONY: get-nodes get-nodes-detail
 
 get-nodes:
@@ -38,7 +44,9 @@ get-nodes:
 get-nodes-detail:
 	docker compose exec cluster-1 kubectl get nodes -o wide
 
-# about pods commands
+###################
+## pods commands ##
+###################
 .PHONY: get-pods get-pods-detail apply-pod describe-deploy describe-pod top-pods
 
 get-pods:
@@ -59,11 +67,10 @@ describe-pod:
 top-pods:
 	docker compose exec cluster-1 kubectl top pods -l app=nginx
 
-# init scripts
-.PHONY: cluster-1 cluster-2
+###################
+## helm commands ##
+###################
+.PHONY: helm-create
 
-cluster-1:
-	docker compose exec cluster-1 /src/scripts/init.sh
-
-cluster-2:
-	docker compose exec cluster-2 /src/scripts/init.sh
+helm-create:
+	docker compose exec cluster-1 helm create /src/api
