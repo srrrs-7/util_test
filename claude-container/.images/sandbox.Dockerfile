@@ -8,3 +8,5 @@ RUN apt update && \
     tmux
 
 WORKDIR /src
+
+RUN bun install -g @anthropic-ai/claude-code
