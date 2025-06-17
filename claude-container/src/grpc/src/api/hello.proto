@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package hello;
+
+option go_package = "grpc-simple-api/proto/hello";
+
+service HelloService {
+  rpc SayHello(HelloRequest) returns (HelloResponse);
+  rpc SayHelloStream(HelloRequest) returns (stream HelloResponse);
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloResponse {
+  string message = 1;
+}
