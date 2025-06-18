@@ -5,10 +5,15 @@ RUN apt update && \
     vim \
     curl \
     iputils-ping \
-    tmux
+    tmux \
+    nodejs \
+    make \
+    fish
 
-WORKDIR /src
+COPY ./src/orchestrator/tmux/tmux.conf /root/.tmux.conf
 
 RUN bun install -g @anthropic-ai/claude-code
+
+WORKDIR /src
 
 CMD [ "sleep", "infinity" ]
