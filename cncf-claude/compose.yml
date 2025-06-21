@@ -1,0 +1,48 @@
+services:
+  claude-master:
+    build:
+      dockerfile: ./.images/master.Dockerfile
+    environment:
+      WORKER_NUM: 5
+    volumes:
+      - ./prompt/tasks:/prompt/tasks
+
+  claude-worker-1:
+    build:
+      dockerfile: ./.images/worker.Dockerfile
+    environment:
+      WORKER_ID: 1
+    volumes:
+      - ./prompt:/prompt/worker_tasks
+
+  claude-worker-2:
+    build:
+      dockerfile: ./.images/worker.Dockerfile
+    environment:
+      WORKER_ID: 2
+    volumes:
+      - ./prompt:/prompt/worker_tasks
+
+  claude-worker-3:
+    build:
+      dockerfile: ./.images/worker.Dockerfile
+    environment:
+      WORKER_ID: 3
+    volumes:
+      - ./prompt:/prompt/worker_tasks
+
+  claude-worker-4:
+    build:
+      dockerfile: ./.images/worker.Dockerfile
+    environment:
+      WORKER_ID: 4
+    volumes:
+      - ./prompt:/prompt/worker_tasks
+
+  claude-worker-5:
+    build:
+      dockerfile: ./.images/worker.Dockerfile
+    environment:
+      WORKER_ID: 5
+    volumes:
+      - ./prompt:/prompt/worker_tasks
