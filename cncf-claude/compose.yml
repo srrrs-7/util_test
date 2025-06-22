@@ -1,4 +1,11 @@
 services:
+  gopher:
+    build:
+      dockerfile: ./.images/gopher.Dockerfile
+    working_dir: /go/src
+    volumes:
+      - ./src:/go/src
+
   claude-master:
     build:
       dockerfile: ./.images/master.Dockerfile
