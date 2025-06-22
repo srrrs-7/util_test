@@ -1,15 +1,21 @@
 package main
 
 import (
-	"claude/config"
+	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
+
+	pb "claude/driver/grpc"
+	"claude/util/config"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type env struct {
 	workerNum int
+	queueHost string
 }
 
 func newEnv() (*env, error) {
@@ -21,12 +27,16 @@ func newEnv() (*env, error) {
 
 	return &env{
 		workerNum: num,
+		queueHost: os.Getenv(config.ENV_QUEUE_HOST),
 	}, nil
 }
 
 func (e *env) validate() error {
 	if e.workerNum <= 0 {
 		return fmt.Errorf("WORKER_NUM must be a positive integer")
+	}
+	if e.queueHost == "" {
+		return fmt.Errorf("QUEUE_HOST must be set")
 	}
 	return nil
 }
@@ -40,31 +50,46 @@ func main() {
 		panic(err)
 	}
 
-	var workerFiles string
-	for i := range e.workerNum {
-		workerFile := fmt.Sprintf(
-			config.WORKER_PROMPT_FILE_PATH+config.WORKER_FILE_NAME,
-			i+1,
-		)
-		workerFiles += fmt.Sprintf("%s ", workerFile)
-		if _, err := os.Stat(workerFile); os.IsNotExist(err) {
-			if err = os.MkdirAll(config.WORKER_PROMPT_FILE_PATH, os.ModePerm); err != nil {
-				panic(fmt.Errorf("failed to create directory %s: %w", config.WORKER_PROMPT_FILE_PATH, err))
-			}
-			if _, err := os.Create(workerFile); err != nil {
-				panic(fmt.Errorf("failed to create file %s: %w", workerFile, err))
-			}
-			fmt.Printf("Created worker file: %s\n", workerFile)
-		}
+	conn, err := grpc.NewClient(
+		e.queueHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to connect to queue host %s: %w", e.queueHost, err))
+	}
+	defer conn.Close()
+
+	client := pb.NewEnqueueServiceClient(conn)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	prompt, err := readPrompt()
+	if err != nil {
+		panic(fmt.Errorf("failed to read prompt: %w", err))
+	}
+	fmt.Printf("Read prompt: \n%s\n", prompt)
+
+	resp, err := client.Enqueue(ctx, &pb.EnqueueRequest{
+		Prompt: prompt,
+	})
+	if err != nil {
+		panic(fmt.Errorf("failed to enqueue prompt: %w", err))
 	}
 
-	instructFile := fmt.Sprintf("%s/%s", config.MASTER_PROMPT_FILE_PATH, config.INSTRUCTION_FILE_NAME)
-	prompt := fmt.Sprintf(`
-		While reading the files in %s, create a task execution plan for %s.
-		Since each file is associated with a worker on a 1:1 basis, run the tasks in parallel to create the optimal execution plan.
-	`, instructFile, workerFiles)
+	fmt.Println("Enqueued prompt result: ", resp.Message)
+}
 
-	if err := exec.Command("claude", "-p", prompt).Run(); err != nil {
-		panic(err)
+func readPrompt() (string, error) {
+	filepath := fmt.Sprintf("%s/%s", config.MASTER_PROMPT_FILE_PATH, config.INSTRUCTION_FILE_NAME)
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		return "", fmt.Errorf("prompt file %s does not exist", filepath)
 	}
+
+	prompt, err := os.ReadFile(filepath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read prompt file %s: %w", filepath, err)
+	}
+
+	return string(prompt), nil
 }

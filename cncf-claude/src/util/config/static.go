@@ -7,6 +7,7 @@ const (
 
 	ENV_WORKER_NUM = "WORKER_NUM"
 	ENV_WORKER_ID  = "WORKER_ID"
+	ENV_QUEUE_HOST = "QUEUE_HOST"
 
 	WORKER_FILE_NAME = "worker-%d.md"
 )
