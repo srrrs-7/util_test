@@ -8,8 +8,7 @@ RUN apt update && \
     tmux \
     nodejs \
     make \
-    fish \
-    docker
+    fish
 
 COPY ./src/orchestrator/tmux/tmux.conf /root/.tmux.conf
 
