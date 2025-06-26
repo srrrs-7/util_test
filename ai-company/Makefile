@@ -23,3 +23,6 @@ claude-master:
 
 claude-worker:
 	docker compose exec claude-worker sh
+
+mcp:
+	docker compose run --rm mcp

@@ -8,11 +8,12 @@ RUN apt update && \
     tmux \
     nodejs \
     make \
-    fish
+    fish \
+    docker
 
 COPY ./src/orchestrator/tmux/tmux.conf /root/.tmux.conf
 
-RUN bun install -g @anthropic-ai/claude-code
+RUN bun install -g @anthropic-ai/claude-code @google/gemini-cli
 
 WORKDIR /src
 

@@ -14,6 +14,12 @@ services:
     environment:
       QUEUE_HOST: "queue:8080"
 
+  mcp:
+    build:
+      dockerfile: ./.images/mcp.Dockerfile
+    stdin_open: true
+    tty: true
+
   claude-master:
     build:
       dockerfile: ./.images/master.Dockerfile

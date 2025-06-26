@@ -1,5 +1,5 @@
 services:
-  claude:
+  ai:
     build:
       dockerfile: ./.images/sandbox.Dockerfile
     ports:
