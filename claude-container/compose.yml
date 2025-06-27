@@ -1,8 +1,9 @@
 services:
   ai:
     build:
-      dockerfile: ./.images/sandbox.Dockerfile
+      context: ./.images
+      dockerfile: ./Dockerfile
     ports:
       - 8080:8080
     volumes:
-      - ./src:/src
+      - ./src:/workspace
