@@ -1,0 +1,5 @@
+# tech
+go
+rust
+typescript
+

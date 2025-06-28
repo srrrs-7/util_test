@@ -1,0 +1,8 @@
+services:
+  ai:
+    build:
+      context: ./.images
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./workspace:/workspace
+      - ./scripts:/scripts

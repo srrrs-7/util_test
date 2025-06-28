@@ -42,7 +42,20 @@ go test ./...
 # Run tests with coverage
 go test -cover ./...
 
+# Run specific test suites
+go test ./server -v          # Server unit tests
+go test ./client -v          # Client unit tests  
+go test . -v                 # Integration tests
+
+# Run single test
+go test -run TestHelloServer_SayHello ./server
+
 # Generate protobuf code (if proto files change)
+# First install required tools:
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3
+
+# Then generate:
 protoc --go_out=proto --go_opt=paths=source_relative \
        --go-grpc_out=proto --go-grpc_opt=paths=source_relative \
        api/hello.proto
@@ -61,6 +74,7 @@ protoc --go_out=proto --go_opt=paths=source_relative \
 - **Server**: `grpc/src/server/main.go` implements HelloService interface
 - **Client**: `grpc/src/client/main.go` demonstrates RPC method calls
 - **Testing**: Unit tests for both server and client components, plus integration tests
+- **Test Utilities**: `grpc/src/testutil/testutil.go` provides TestServer (in-memory gRPC server), MockHelloServer, and TestStreamReceiver for comprehensive testing
 
 ### Orchestrator System
 The orchestrator creates a tmux session with multiple panes and launches Claude Code instances in each pane. It uses:
@@ -78,4 +92,10 @@ The orchestrator creates a tmux session with multiple panes and launches Claude 
 
 ## Working Directory Context
 
-When working on gRPC components, change to `/src/grpc/src/` directory first as it contains the Go module and all related files.
+When working on gRPC components, change to `/workspace/grpc/src/` directory first as it contains the Go module and all related files. This is where you'll find:
+- `go.mod` and `go.sum` for dependency management
+- All Go source files (server/, client/, testutil/)
+- The `api/` directory with protobuf definitions
+- Generated code in `proto/api/`
+
+The server runs on port 50051 by default for local development.
