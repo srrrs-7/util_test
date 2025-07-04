@@ -29,7 +29,7 @@ func (c *Server) NewServer(stream ChatService_ChatServer) {
 	errCh := make(chan error)
 
 	go c.receive(stream, errCh)
-	go c.send(stream, errCh)
+	go c.send(errCh)
 
 	<-errCh
 }
@@ -69,7 +69,7 @@ func (c *Server) receive(stream ChatService_ChatServer, errCh chan error) {
 	}
 }
 
-func (c *Server) send(stream ChatService_ChatServer, errCh chan error) {
+func (c *Server) send(errCh chan error) {
 	for {
 		time.Sleep(100 * time.Millisecond)
 
