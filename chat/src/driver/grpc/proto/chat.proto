@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package Chat;
+
+option go_package = "./driver/grpc";
+
+message Message {
+    string id = 1;
+    string from = 2;
+    string msg = 3;
+    google.protobuf.Timestamp created_at = 4;
+}
+
+service ChatService {
+    rpc Chat (stream Message) returns (stream Message);
+}
