@@ -1,7 +1,7 @@
 .PHONY: client server build down gopher grpc tidy rmi logs
 
 client:
-	docker compose run --rm --service-ports client
+	docker compose run --rm -p 8081:8081 client
 
 server:
 	docker compose up server
