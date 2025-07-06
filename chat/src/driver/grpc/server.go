@@ -25,13 +25,13 @@ func New() *Server {
 	}
 }
 
-func (c *Server) NewServer(stream ChatService_ChatServer) {
+func (c *Server) Chat(stream ChatService_ChatServer) error {
 	errCh := make(chan error)
 
 	go c.receive(stream, errCh)
 	go c.send(errCh)
 
-	<-errCh
+	return <-errCh
 }
 
 func (c *Server) receive(stream ChatService_ChatServer, errCh chan error) {

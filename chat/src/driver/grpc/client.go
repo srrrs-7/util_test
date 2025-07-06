@@ -44,14 +44,15 @@ func (c *Client) receive(stream ChatService_ChatClient, waitCh chan struct{}) {
 			log.Printf("Failed to receive message: %v", err)
 			continue
 		}
-		log.Printf("[%s] : %s (%s)\n", msg.GetFrom(), msg.GetMsg(), msg.GetCreatedAt())
+		log.Printf("[%s] : %s \n", msg.GetFrom(), msg.GetMsg())
 	}
 	waitCh <- struct{}{}
 }
 
 func (c *Client) send(stream ChatService_ChatClient, waitCh chan struct{}) {
-	reader := bufio.NewReader(os.Stdin)
 	for {
+		reader := bufio.NewReader(os.Stdin)
+
 		text, err := reader.ReadString('\n')
 		if err != nil {
 			log.Printf("Failed to read: %v", err)

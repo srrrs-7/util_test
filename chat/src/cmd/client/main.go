@@ -33,7 +33,7 @@ func (e env) validate() error {
 	return nil
 }
 
-func getUserName() string {
+func getFrom() string {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("Enter your name: ")
 
@@ -75,7 +75,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-		client := newClient(conn, getUserName())
+		client := newClient(conn, getFrom())
 		client.NewClient()
 	}()
 

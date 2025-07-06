@@ -1,7 +1,10 @@
-.PHONY: up build down gopher grpc tidy rmi
+.PHONY: client server build down gopher grpc tidy rmi logs
 
-up:
-	docker compose up -d client server --scale client=1
+client:
+	docker compose run --rm --service-ports client
+
+server:
+	docker compose up server
 
 build:
 	docker compose build
@@ -21,3 +24,6 @@ tidy:
 
 rmi:
 	docker image ls | grep "<none>" | awk '{print $$3}' | xargs docker rmi
+
+logs:
+	docker compose logs
