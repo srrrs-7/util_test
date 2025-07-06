@@ -101,9 +101,9 @@ const file_chat_proto_rawDesc = "" +
 	"\x04from\x18\x02 \x01(\tR\x04from\x12\x10\n" +
 	"\x03msg\x18\x03 \x01(\tR\x03msg\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt29\n" +
-	"\vChatService\x12*\n" +
-	"\x04Chat\x12\r.Chat.Message\x1a\r.Chat.Message\"\x00(\x010\x01B\x0fZ\r./driver/grpcb\x06proto3"
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt27\n" +
+	"\vChatService\x12(\n" +
+	"\x04Chat\x12\r.Chat.Message\x1a\r.Chat.Message(\x010\x01B\x0fZ\r./driver/grpcb\x06proto3"
 
 var (
 	file_chat_proto_rawDescOnce sync.Once
